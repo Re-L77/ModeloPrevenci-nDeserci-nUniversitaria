@@ -1,0 +1,23 @@
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+
+// Vista de Alertas
+// TODO: Implementar interfaz de alertas y notificaciones
+
+const AlertsScreen = () => {
+    return (
+        <View style={styles.container}>
+            <Text>Alerts Screen</Text>
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+});
+
+export default AlertsScreen;
