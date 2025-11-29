@@ -17,7 +17,7 @@ const RootNavigator = () => {
         // Simulamos un tiempo de carga (puedes cambiar esto según necesites)
         const timer = setTimeout(() => {
             setLoading(false);
-        }, 3000); // Muestra el splash durante 3 segundos
+        }, 4000); // Muestra el splash durante 3 segundos
 
         return () => clearTimeout(timer);
     }, []);
