@@ -7,7 +7,7 @@ import AppNavigator from './AppNavigator';
 // Controla la navegación entre la app autenticada y no autenticada
 
 const RootNavigator = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
