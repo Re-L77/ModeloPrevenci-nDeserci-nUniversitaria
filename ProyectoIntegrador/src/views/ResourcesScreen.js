@@ -97,11 +97,21 @@ const ResourcesScreen = () => {
     },
   ]);
 
+  // Mapeo de categorías cortas a tipos completos
+  const categoryMap = {
+    'Todos': null,
+    'Materiales': 'Material de Estudio',
+    'Videos': 'Video Tutorial'
+  };
+
   const filterResources = () => {
-    if (selectedFilter === 'Todos') {
+    const actualFilter = categoryMap[selectedFilter];
+    
+    if (actualFilter === null) {
       return resourcesData;
     }
-    return resourcesData.filter((resource) => resource.type === selectedFilter);
+    
+    return resourcesData.filter((resource) => resource.type === actualFilter);
   };
 
   const renderResourceCard = ({ item }) => (
@@ -150,7 +160,7 @@ const ResourcesScreen = () => {
     </View>
   );
 
-  const categories = ['Todos', 'Material de Estudio', 'Video Tutorial'];
+  const categories = ['Todos', 'Materiales', 'Videos'];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -280,26 +290,35 @@ const styles = StyleSheet.create({
     color: '#1F2937',
   },
   filtersContainer: {
+    marginTop: 16,
     marginBottom: 24,
+    height: 100,
   },
   filtersContent: {
     paddingHorizontal: 20,
     alignItems: 'center',
+    paddingVertical: 16,
   },
   filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 28,
+    paddingVertical: 14,
     backgroundColor: '#F3F4F6',
-    borderRadius: 20,
-    marginRight: 10,
+    borderRadius: 24,
+    marginRight: 14,
+    minHeight: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
   },
   filterButtonActive: {
     backgroundColor: '#3B82F6',
   },
   filterButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#4B5563',
     fontWeight: '600',
+    textAlign: 'center',
+    includeFontPadding: false,
   },
   filterButtonTextActive: {
     color: '#FFFFFF',
