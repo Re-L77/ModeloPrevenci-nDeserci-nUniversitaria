@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  Dimensions,
-} from 'react-native';
+import {View,Text,ScrollView,TouchableOpacity,StyleSheet,StatusBar,Dimensions,} from 'react-native';
 
 const { width } = Dimensions.get('window');
 
-export default function StudentDashboard() {
-  const [studentData, setStudentData] = useState({
+
+//   Descripción: Pantalla principal del estudiante que muestra su desempeño académico
+ 
+export default function PantallaPrincipalEstudiante() {
+  // ESTADO
+  //  Datos del estudiante: nombre, programa, promedio, asistencia, etc.
+   
+  const [datosEstudiante, setDatosEstudiante] = useState({
     name: 'María',
     program: 'Ingeniería en Sistemas',
     semester: 'Semestre 5',
@@ -26,7 +23,11 @@ export default function StudentDashboard() {
     creditosTotales: 18,
   });
 
-  const [alerts, setAlerts] = useState([
+  
+  //   Alertas del estudiante
+  //   Tipos: low_attendance ES PARA ASISTENCIA BAJA, at_risk CALIF EN RIESGOOO
+  
+  const [alertas, setAlertas] = useState([
     {
       id: 1,
       type: 'low_attendance',
@@ -43,7 +44,11 @@ export default function StudentDashboard() {
     },
   ]);
 
-  const [subjects, setSubjects] = useState([
+
+  //   Materias inscritas del estudiante
+  //  contiene: código, nombre, profesor, calificación, asistencia, créditos, estado
+
+  const [materias, setMaterias] = useState([
     {
       id: 1,
       code: 'BD202',
@@ -101,7 +106,10 @@ export default function StudentDashboard() {
     },
   ]);
 
-  const [gpaHistory, setGpaHistory] = useState([
+  //  Historial de promedio por semestre
+  //   Se usa para generar gráficos de evolución académica
+  
+  const [historialPromedio, setHistorialPromedio] = useState([
     { semester: 'S1', gpa: 8.5 },
     { semester: 'S2', gpa: 8.8 },
     { semester: 'S3', gpa: 8.9 },
@@ -110,12 +118,16 @@ export default function StudentDashboard() {
   ]);
 
 
-  // ===== CÁLCULOS =====
-  const calculateStatusDistribution = () => {
-    const total = subjects.length;
-    const excelente = subjects.filter(s => s.status === 'Excelente').length;
-    const bueno = subjects.filter(s => s.status === 'Bueno').length;
-    const enRiesgo = subjects.filter(s => s.status === 'En Riesgo').length;
+  // CÁLCULOS Y FUNCIONES AUXILIARES
+    // Calcula la distribución de estados de las materias
+    // Retorna porcentajes de: Excelente, Bueno, En Riesgo usando la grafica de pastel
+
+   
+  const calcularDistribucionEstados = () => {
+    const total = materias.length;
+    const excelente = materias.filter(m => m.status === 'Excelente').length;
+    const bueno = materias.filter(m => m.status === 'Bueno').length;
+    const enRiesgo = materias.filter(m => m.status === 'En Riesgo').length;
 
     return {
       excelente: { percentage: Math.round((excelente / total) * 100) },
@@ -124,40 +136,56 @@ export default function StudentDashboard() {
     };
   };
 
-  const statusDist = calculateStatusDistribution();
+  const distEstados = calcularDistribucionEstados();
 
-  const getBarHeight = (gpa) => {
-    return Math.round((gpa / 10) * 100);
+
+    // Convierte un promedio a altura de barra para el gráfico
+
+  const obtenerAlturaBarra = (promedio) => {
+    return Math.round((promedio / 10) * 100);
   };
 
+  
+  //  Elimina una alerta por su ID
+  //   Se ejecuta cuando el usuario hace clic en la X de la alerta
+  
+  const eliminarAlerta = (id) => {
+    setAlertas(alertas.filter(alerta => alerta.id !== id));
+  };
+
+
+
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
       
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Header */}
+        {/* Encabezado con saludo personalizado y programa del estudiante */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <Text style={styles.greeting}>Buenas noches, {studentData.name}!</Text>
-            <Text style={styles.subtitle}>{studentData.program} • {studentData.semester}</Text>
+            <Text style={styles.greeting}>Buenas noches, {datosEstudiante.name}!</Text>
+            <Text style={styles.subtitle}>{datosEstudiante.program} • {datosEstudiante.semester}</Text>
           </View>
         </View>
 
-        {/* Content Container */}
+        {/* ===== CONTENEDOR PRINCIPAL ===== */}
         <View style={styles.contentContainer}>
-          {/* Alerts */}
-          {alerts.filter(a => a.visible).length > 0 && (
+          
+          {/* SECCIÓN: ALERTAS */}
+          {/* Muestra alertas sobre asistencia baja o calificaciones en riesgo */}
+   
+          {alertas.filter(a => a.visible).length > 0 && (
             <View style={styles.alertsContainer}>
-              {alerts.filter(a => a.visible).map((alert) => (
-                <View key={alert.id} style={styles.alertCard}>
+              {alertas.filter(a => a.visible).map((alerta) => (
+                <View key={alerta.id} style={styles.alertCard}>
                   <View style={styles.alertIcon}>
                     <Text style={styles.alertIconText}>⚠</Text>
                   </View>
                   <View style={styles.alertContent}>
-                    <Text style={styles.alertTitle}>{alert.title}</Text>
-                    <Text style={styles.alertMessage}>{alert.message}</Text>
+                    <Text style={styles.alertTitle}>{alerta.title}</Text>
+                    <Text style={styles.alertMessage}>{alerta.message}</Text>
                   </View>
-                  <TouchableOpacity onPress={() => dismissAlert(alert.id)} style={styles.dismissButton}>
+                  <TouchableOpacity onPress={() => eliminarAlerta(alerta.id)} style={styles.dismissButton}>
                     <Text style={styles.dismissText}>✕</Text>
                   </TouchableOpacity>
                 </View>
@@ -165,22 +193,26 @@ export default function StudentDashboard() {
             </View>
           )}
 
-          {/* Stats Grid - 2x2 Layout */}
+          {/* SECCIÓN: ESTADÍSTICAS */}
+              {/* - Promedio General
+              - Asistencia
+              - Materias en Riesgo
+              - Créditos Totales  */}
           <View style={styles.statsGridContainer}>
             <View style={styles.statsRow}>
               <View style={[styles.miniCard, styles.blueCard]}>
                 <Text style={styles.miniLabel}>Promedio General</Text>
                 <Text style={styles.miniIcon}>📊</Text>
-                <Text style={styles.miniValue}>{studentData.gpa.toFixed(2)}</Text>
-                <Text style={styles.miniSub}>De {studentData.maxGpa} posibles</Text>
-                <Text style={styles.miniChange}>+{studentData.gpaChange.toFixed(2)}%</Text>
+                <Text style={styles.miniValue}>{datosEstudiante.gpa.toFixed(2)}</Text>
+                <Text style={styles.miniSub}>De {datosEstudiante.maxGpa} posibles</Text>
+                <Text style={styles.miniChange}>+{datosEstudiante.gpaChange.toFixed(2)}%</Text>
               </View>
 
               <View style={[styles.miniCard, styles.orangeCard]}>
                 <Text style={styles.miniLabel}>Asistencia</Text>
                 <Text style={styles.miniIcon}>📅</Text>
-                <Text style={styles.miniValue}>{studentData.attendance.toFixed(1)}%</Text>
-                <Text style={styles.miniSub}>Última: {studentData.lastAttendanceUpdate}%</Text>
+                <Text style={styles.miniValue}>{datosEstudiante.attendance.toFixed(1)}%</Text>
+                <Text style={styles.miniSub}>Última: {datosEstudiante.lastAttendanceUpdate}%</Text>
               </View>
             </View>
 
@@ -188,43 +220,46 @@ export default function StudentDashboard() {
               <View style={[styles.miniCard, styles.pinkCard]}>
                 <Text style={styles.miniLabel}>Materias en Riesgo</Text>
                 <Text style={styles.miniIcon}>⚠️</Text>
-                <Text style={styles.miniValue}>{studentData.materiasEnRiesgo}</Text>
-                <Text style={styles.miniSub}>De {subjects.length} materias</Text>
+                <Text style={styles.miniValue}>{datosEstudiante.materiasEnRiesgo}</Text>
+                <Text style={styles.miniSub}>De {materias.length} materias</Text>
               </View>
 
               <View style={[styles.miniCard, styles.yellowCard]}>
                 <Text style={styles.miniLabel}>Créditos Totales</Text>
                 <Text style={styles.miniIcon}>⭐</Text>
-                <Text style={styles.miniValue}>{studentData.creditosTotales}</Text>
+                <Text style={styles.miniValue}>{datosEstudiante.creditosTotales}</Text>
                 <Text style={styles.miniSub}>Este semestre</Text>
               </View>
             </View>
           </View>
 
-          {/* Subjects Section */}
+           {/* SECCIÓN: MIS MATERIAS
+           Lista de todas las materias inscritas con su información: */}
+
+              
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}> Mis Materias</Text>
+              <Text style={styles.sectionTitle}>📚 Mis Materias</Text>
               <TouchableOpacity>
                 <Text style={styles.linkText}>Ver todas →</Text>
               </TouchableOpacity>
             </View>
 
-            {subjects.map((sub) => (
-              <TouchableOpacity key={sub.id} style={styles.subjectCard} activeOpacity={0.7}>
+            {materias.map((materia) => (
+              <TouchableOpacity key={materia.id} style={styles.subjectCard} activeOpacity={0.7}>
                 <View style={styles.subjectHeader}>
                   <View style={styles.subjectInfo}>
                     <View style={styles.subjectIconContainer}>
                       <Text style={styles.subjectIconText}>📖</Text>
                     </View>
                     <View style={styles.subjectTexts}>
-                      <Text style={styles.subjectName}>{sub.name}</Text>
-                      <Text style={styles.professorName}>{sub.professor}</Text>
+                      <Text style={styles.subjectName}>{materia.name}</Text>
+                      <Text style={styles.professorName}>{materia.professor}</Text>
                     </View>
                   </View>
-                  <View style={[styles.statusBadge, { backgroundColor: sub.statusColor + '20' }]}>
-                    <Text style={[styles.statusText, { color: sub.statusColor }]}>
-                      {sub.status}
+                  <View style={[styles.statusBadge, { backgroundColor: materia.statusColor + '20' }]}>
+                    <Text style={[styles.statusText, { color: materia.statusColor }]}>
+                      {materia.status}
                     </Text>
                   </View>
                 </View>
@@ -232,17 +267,17 @@ export default function StudentDashboard() {
                 <View style={styles.subjectStats}>
                   <View style={styles.statItem}>
                
-                    <Text style={styles.statValue}>{sub.grade.toFixed(1)}</Text>
+                    <Text style={styles.statValue}>{materia.grade.toFixed(1)}</Text>
                     <Text style={styles.statLabel}>Calificación</Text>
                   </View>
                   <View style={styles.statItem}>
                     {/* <Text style={styles.statIcon}>📅</Text> */}
-                    <Text style={styles.statValue}>{sub.attendance}%</Text>
+                    <Text style={styles.statValue}>{materia.attendance}%</Text>
                     <Text style={styles.statLabel}>Asistencia</Text>
                   </View>
                   <View style={styles.statItem}>
                   
-                    <Text style={styles.statValue}>{sub.credits}</Text>
+                    <Text style={styles.statValue}>{materia.credits}</Text>
                     <Text style={styles.statLabel}>Créditos</Text>
                   </View>
                 </View>
@@ -250,17 +285,20 @@ export default function StudentDashboard() {
             ))}
           </View>
 
-          {/* Analytics Section */}
+          {/* SECCIÓN: ANÁLISIS DE RENDIMIENTO */}
+           {/* Gráficos y análisis del desempeño académico: */}
+      
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Análisis de Rendimiento</Text>
+            <Text style={styles.sectionTitle}> Análisis de Rendimiento</Text>
 
-            {/* Evolución */}
+            {/* SUB-SECCIÓN: EVOLUCIÓN DE PROMEDIO */}
+            {/* Gráfico de pastel mostrando la distribución de promedios por semestre */}
             <View style={styles.analyticsCard}>
               <Text style={styles.analyticsTitle}>Evolución de Promedio</Text>
               <View style={styles.chartContainer}>
                 <View style={styles.barsContainer}>
-                  {gpaHistory.map((item, i) => {
-                    const h = getBarHeight(item.gpa);
+                  {historialPromedio.map((item, i) => {
+                    const h = obtenerAlturaBarra(item.gpa);
                     return (
                       <View key={i} style={styles.barWrapper}>
                         <View style={[styles.bar, { height: h }]} />
@@ -272,54 +310,20 @@ export default function StudentDashboard() {
               </View>
             </View>
 
-            {/* Distribución */}
-            <View style={styles.analyticsCard}>
-              <Text style={styles.analyticsTitle}>Distribución por Estado</Text>
-              <View style={styles.pieContainer}>
-                <View style={styles.pieChart}>
-                  <View style={[styles.pieSegment, styles.pieGreen, { flex: statusDist.excelente.percentage }]} />
-                  <View style={[styles.pieSegment, styles.pieBlue, { flex: statusDist.bueno.percentage }]} />
-                  <View style={[styles.pieSegment, styles.pieRed, { flex: statusDist.enRiesgo.percentage }]} />
-                </View>
-                <View style={styles.legend}>
-                  <View style={styles.legendRow}>
-                    <View style={styles.legendItem}>
-                      <View style={[styles.legendColor, styles.legendGreen]} />
-                      <Text style={styles.legendText}>Excelente</Text>
-                    </View>
-                    <Text style={styles.legendPercent}>{statusDist.excelente.percentage}%</Text>
-                  </View>
-                  <View style={styles.legendRow}>
-                    <View style={styles.legendItem}>
-                      <View style={[styles.legendColor, styles.legendBlue]} />
-                      <Text style={styles.legendText}>Bueno</Text>
-                    </View>
-                    <Text style={styles.legendPercent}>{statusDist.bueno.percentage}%</Text>
-                  </View>
-                  <View style={styles.legendRow}>
-                    <View style={styles.legendItem}>
-                      <View style={[styles.legendColor, styles.legendRed]} />
-                      <Text style={styles.legendText}>En Riesgo</Text>
-                    </View>
-                    <Text style={styles.legendPercent}>{statusDist.enRiesgo.percentage}%</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-
-            {/* Comparación */}
+            {/*  COMPARACIÓN POR MATERIA */}
+            {/* Gráfico de barras comparativo mostrando asistencia vs calificación por materia */}
             <View style={styles.analyticsCard}>
               <Text style={styles.analyticsTitle}>Comparación por Materia</Text>
               <View style={styles.comparisonContainer}>
-                {subjects.map((sub) => (
-                  <View key={sub.id} style={styles.comparisonRow}>
-                    <Text style={styles.comparisonCode}>{sub.code}</Text>
+                {materias.map((materia) => (
+                  <View key={materia.id} style={styles.comparisonRow}>
+                    <Text style={styles.comparisonCode}>{materia.code}</Text>
                     <View style={styles.comparisonBars}>
                       <View style={styles.barBackground}>
-                        <View style={[styles.comparisonBar, styles.comparisonBarGreen, { width: `${sub.attendance}%` }]} />
+                        <View style={[styles.comparisonBar, styles.comparisonBarGreen, { width: `${materia.attendance}%` }]} />
                       </View>
                       <View style={styles.barBackground}>
-                        <View style={[styles.comparisonBar, styles.comparisonBarBlue, { width: `${(sub.grade / 10) * 100}%` }]} />
+                        <View style={[styles.comparisonBar, styles.comparisonBarBlue, { width: `${(materia.grade / 10) * 100}%` }]} />
                       </View>
                     </View>
                   </View>
@@ -341,15 +345,18 @@ export default function StudentDashboard() {
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
+
+//    ESTILOS DEL COMPONENTE
+ 
 const styles = StyleSheet.create({
-  // Container
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    paddingTop: 0,
   },
   scroll: {
     flex: 1,
@@ -358,8 +365,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     width: '100%',
   },
-
-  // Header
   header: {
     backgroundColor: '#fff',
     paddingVertical: 20,
@@ -383,8 +388,6 @@ const styles = StyleSheet.create({
     color: '#6c757d',
     textAlign: 'center',
   },
-
-  // Alerts
   alertsContainer: {
     width: '100%',
     marginTop: 16,
@@ -437,8 +440,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#adb5bd',
   },
-
-  // Stats Grid - 2x2 Layout
   statsGridContainer: {
     marginTop: 12,
     marginBottom: 16,
@@ -501,8 +502,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     lineHeight: 10,
   },
-
-  // Section
   section: {
     width: '100%',
     marginTop: 20,
@@ -524,8 +523,6 @@ const styles = StyleSheet.create({
     color: '#0d6efd',
     fontWeight: '600',
   },
-
-  // Subject Card
   subjectCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
@@ -606,8 +603,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#6c757d',
   },
-
-  // Analytics
   analyticsCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
@@ -655,9 +650,9 @@ const styles = StyleSheet.create({
 
   // Pie Chart
   pieContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: 24,
+    gap: 20,
   },
   pieChart: {
     width: 120,
@@ -686,8 +681,8 @@ const styles = StyleSheet.create({
 
   // Legend
   legend: {
-    flex: 1,
-    gap: 12,
+    width: '100%',
+    gap: 10,
   },
   legendRow: {
     flexDirection: 'row',
@@ -722,8 +717,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#212529',
   },
-
-  // Comparison
   comparisonContainer: {
     gap: 14,
   },
@@ -767,8 +760,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#e9ecef',
   },
-
-  // Bottom Spacing
   bottomSpacing: {
     height: 40,
   },
