@@ -1,91 +1,151 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, Animated, Dimensions, Image, Easing } from 'react-native';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const SplashScreen = () => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.8)).current;
-  const dotAnim = useRef(new Animated.Value(0)).current;
+  // 1. Valores para la entrada principal (Logo y Textos)
+  const logoScale = useRef(new Animated.Value(0)).current;
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const textTranslateY = useRef(new Animated.Value(50)).current; // Para que suban
+  const textOpacity = useRef(new Animated.Value(0)).current;
+
+  // 2. Valor para el efecto "Pulse" (Latido de fondo)
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // 3. Valores para los 3 puntos de carga (Array de valores)
+  const dotAnims = [
+    useRef(new Animated.Value(0)).current,
+    useRef(new Animated.Value(0)).current,
+    useRef(new Animated.Value(0)).current,
+  ];
 
   useEffect(() => {
-    // Animación del logo: fade-in y scale
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // Animación de los dots de carga
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(dotAnim, {
+    // --- SECUENCIA DE ENTRADA ---
+    Animated.sequence([
+      // A. Aparece el logo con un efecto de rebote (Spring)
+      Animated.parallel([
+        Animated.spring(logoScale, {
           toValue: 1,
-          duration: 500,
+          friction: 6,      // Rebote suave
+          tension: 40,
           useNativeDriver: true,
         }),
-        Animated.timing(dotAnim, {
+        Animated.timing(logoOpacity, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ]),
+      // B. Aparecen el título y subtítulo deslizando hacia arriba
+      Animated.parallel([
+        Animated.timing(textTranslateY, {
           toValue: 0,
-          duration: 500,
+          duration: 800,
+          easing: Easing.out(Easing.exp), // Deceleración suave
+          useNativeDriver: true,
+        }),
+        Animated.timing(textOpacity, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+
+    // --- ANIMACIONES EN BUCLE ---
+
+    // 1. Efecto Pulse (Latido del círculo)
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.1, // Crece un 10%
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,   // Regresa
+          duration: 1500,
           useNativeDriver: true,
         }),
       ])
     ).start();
-  }, []);
 
-  const dotOpacity = dotAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0.3, 1, 0.3],
-  });
+    // 2. Efecto Ola para los dots (Uno tras otro)
+    const dotAnimations = dotAnims.map((anim) =>
+      Animated.sequence([
+        Animated.timing(anim, {
+          toValue: -10, // Sube 10 pixeles
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(anim, {
+          toValue: 0,   // Baja
+          duration: 400,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    // Ejecutamos la animación de los dots con un retraso entre cada uno (stagger)
+    Animated.loop(
+      Animated.stagger(200, dotAnimations) // 200ms de diferencia entre cada punto
+    ).start();
+
+  }, []);
 
   return (
     <View style={styles.container}>
-      {/* Fondo degradado */}
+      {/* Fondo estático */}
       <View style={styles.background} />
 
-      {/* Contenido principal */}
-      <Animated.View
-        style={[
-          styles.content,
-          {
-            opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }],
-          },
-        ]}
-      >
-        {/* Logo */}
-        <View style={styles.logoContainer}>
+      <View style={styles.content}>
+        {/* Logo con efecto Pulse detrás */}
+        <Animated.View
+          style={[
+            styles.logoContainer,
+            {
+              opacity: logoOpacity,
+              transform: [
+                { scale: logoScale }, // Escala de entrada
+                { scale: pulseAnim }  // Escala del latido (se multiplican visualmente)
+              ],
+            },
+          ]}
+        >
+          {/* Círculo decorativo extra para el efecto pulse */}
           <Image
             source={require('../../assets/LogoPI.png')}
             style={styles.logoImage}
             resizeMode="contain"
           />
-        </View>
+        </Animated.View>
 
-        {/* Título */}
-        <Text style={styles.title}>Modelo de prevención para deserción universitaria</Text>
-
-        {/* Subtítulo */}
-        <Text style={styles.subtitle}>Tu camino universitario, nuestra misión: tu éxito</Text>
-      </Animated.View>
-
-      {/* Loading dots */}
-      <View style={styles.loaderContainer}>
+        {/* Textos con entrada deslizante */}
         <Animated.View
-          style={[styles.dot, { opacity: dotOpacity }]}
-        />
-        <View style={styles.dot} />
-        <View style={styles.dot} />
+          style={{
+            opacity: textOpacity,
+            transform: [{ translateY: textTranslateY }],
+            alignItems: 'center'
+          }}
+        >
+          <Text style={styles.subtitle}>Tu camino universitario, nuestra misión: tu éxito</Text>
+        </Animated.View>
       </View>
 
-      {/* Texto de carga */}
+      {/* Loading dots tipo "Ola" */}
+      <View style={styles.loaderContainer}>
+        {dotAnims.map((anim, index) => (
+          <Animated.View
+            key={index}
+            style={[
+              styles.dot,
+              { transform: [{ translateY: anim }] } // Animamos la posición Y
+            ]}
+          />
+        ))}
+      </View>
+
       <Text style={styles.loadingText}>Iniciando...</Text>
     </View>
   );
@@ -99,65 +159,65 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F9FC',
   },
   background: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: '#F5F9FC',
   },
   content: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 100,
+    marginBottom: 80, // Ajustado para dar espacio visual
+    width: '100%',
   },
   logoContainer: {
-    marginBottom: 24,
+    marginBottom: 30,
     width: 140,
     height: 140,
     borderRadius: 70,
     backgroundColor: '#E8F1F7',
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 5,
+    // Sombras suaves
     shadowColor: '#0D5B8F',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#FFFFFF', // Un borde blanco sutil lo hace ver más limpio
   },
   logoImage: {
     width: 100,
     height: 100,
   },
-  logo: {
-    fontWeight: 'bold',
-  },
   title: {
-    fontSize: 32,
-    fontWeight: '700',
+    fontSize: 28, // Un poco más pequeño para asegurar que quepa bien
+    fontWeight: '800',
     color: '#0D5B8F',
-    marginBottom: 8,
-    marginHorizontal:10,
+    marginBottom: 10,
+    marginHorizontal: 20,
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#3D7CA8',
+    fontSize: 15,
+    color: '#5A8BB0', // Un tono ligeramente más suave que antes
     textAlign: 'center',
-    paddingHorizontal: 24,
-    lineHeight: 20,
+    paddingHorizontal: 30,
+    lineHeight: 22,
+    fontWeight: '500',
   },
   loaderContainer: {
+    position: 'absolute', // Fijamos posición inferior
+    bottom: 80,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 40,
+    gap: 12, // Más separación entre puntos
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: '#0D5B8F',
   },
   loadingText: {
@@ -165,6 +225,9 @@ const styles = StyleSheet.create({
     color: '#7A9FBE',
     position: 'absolute',
     bottom: 40,
+    letterSpacing: 1,
+    textTransform: 'uppercase', // Se ve más técnico
+    fontWeight: '600'
   },
 });
 
