@@ -29,42 +29,57 @@ class UserController {
     }
   }
 
-  // Autenticar usuario
+  // Autenticar usuario - Versión simplificada
   async login(email, password) {
+    console.log('=== LOGIN INICIADO ===');
+    console.log('Email:', email);
+    
+    // Validaciones básicas
+    if (!email || !password) {
+      console.log('❌ Faltan credenciales');
+      return { success: false, message: 'Email y contraseña requeridos' };
+    }
+
+    // Por ahora, validar con datos hardcodeados para testing
+    const validUsers = {
+      'maria.garcia@universidad.edu': { password: 'demo123', name: 'María García López', role: 'student' },
+      'carlos.rodriguez@universidad.edu': { password: 'demo456', name: 'Carlos Rodríguez', role: 'student' },
+      'admin@universidad.edu': { password: 'admin123', name: 'Dr. Ana Martínez', role: 'admin' },
+      'luis.hernandez@universidad.edu': { password: 'prof123', name: 'Prof. Luis Hernández', role: 'teacher' },
+      'ana.delgado@universidad.edu': { password: 'demo789', name: 'Ana Sofia Delgado', role: 'student' }
+    };
+
+    const userEmail = email.toLowerCase();
+    const validUser = validUsers[userEmail];
+
+    if (!validUser || validUser.password !== password) {
+      console.log('❌ Credenciales inválidas');
+      return { success: false, message: 'Credenciales incorrectas' };
+    }
+
+    // Simular usuario autenticado
+    this.authToken = `token-${Date.now()}`;
+    this.currentUser = {
+      id: Math.floor(Math.random() * 1000),
+      name: validUser.name,
+      email: userEmail,
+      role: validUser.role
+    };
+
+    // Guardar en AsyncStorage
     try {
-      if (!email || !password) {
-        throw new Error('Email y contraseña son requeridos');
-      }
-
-      const user = await User.findByEmail(email.toLowerCase());
-      if (!user || !user.validatePassword(password)) {
-        throw new Error('Credenciales inválidas');
-      }
-
-      // Generar token (en producción usar JWT)
-      this.authToken = `token-${user.id}-${Date.now()}`;
-      this.currentUser = user.toSafeObject();
-
-      // Obtener perfil completo
-      const profile = await user.getProfile();
-      this.currentUser = profile;
-
-      // Guardar sesión
       await AsyncStorage.setItem('authToken', this.authToken);
       await AsyncStorage.setItem('currentUser', JSON.stringify(this.currentUser));
-
-      return {
-        success: true,
-        token: this.authToken,
-        user: this.currentUser
-      };
     } catch (error) {
-      console.error('Login error:', error);
-      return {
-        success: false,
-        message: error.message
-      };
+      console.log('⚠️ Error guardando sesión:', error);
     }
+
+    console.log('✅ LOGIN EXITOSO:', this.currentUser.name);
+    return {
+      success: true,
+      token: this.authToken,
+      user: this.currentUser
+    };
   }
 
   // Cerrar sesión
@@ -229,6 +244,22 @@ class UserController {
         success: false,
         message: error.message
       };
+    }
+  }
+
+  // Función de prueba para verificar la base de datos
+  async testDatabaseConnection() {
+    try {
+      console.log('UserController: Probando conexión a base de datos...');
+      const users = await User.findAll(5, 0);
+      console.log('UserController: Usuarios encontrados:', users.length);
+      users.forEach(user => {
+        console.log(`- ${user.email} (${user.name})`);
+      });
+      return true;
+    } catch (error) {
+      console.error('UserController: Error probando base de datos:', error);
+      return false;
     }
   }
 

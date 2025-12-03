@@ -93,19 +93,61 @@ const insertDemoData = async () => {
         const userCount = await database.getFirstAsync('SELECT COUNT(*) as count FROM users');
         if (userCount.count > 0) return;
 
-        // Insertar usuario demo
-        const result = await database.runAsync(
+        // === USUARIOS DEMO ===
+
+        // Usuario estudiante principal
+        const mariaResult = await database.runAsync(
             'INSERT INTO users (name, email, password, role, phone) VALUES (?, ?, ?, ?, ?)',
-            ['Maria Garcia', 'maria.garcia@universidad.edu', 'demo123', 'student', '+57 300 123 4567']
+            ['María García López', 'maria.garcia@universidad.edu', 'demo123', 'student', '+57 300 123 4567']
         );
 
-        // Insertar estudiante demo
+        // Usuario estudiante en riesgo
+        const carlosResult = await database.runAsync(
+            'INSERT INTO users (name, email, password, role, phone) VALUES (?, ?, ?, ?, ?)',
+            ['Carlos Rodríguez', 'carlos.rodriguez@universidad.edu', 'demo456', 'student', '+57 301 234 5678']
+        );
+
+        // Usuario administrador
+        const adminResult = await database.runAsync(
+            'INSERT INTO users (name, email, password, role, phone) VALUES (?, ?, ?, ?, ?)',
+            ['Dr. Ana Martínez', 'admin@universidad.edu', 'admin123', 'admin', '+57 302 345 6789']
+        );
+
+        // Usuario profesor/consejero
+        const teacherResult = await database.runAsync(
+            'INSERT INTO users (name, email, password, role, phone) VALUES (?, ?, ?, ?, ?)',
+            ['Prof. Luis Hernández', 'luis.hernandez@universidad.edu', 'prof123', 'teacher', '+57 303 456 7890']
+        );
+
+        // Usuario estudiante exitoso
+        const anaResult = await database.runAsync(
+            'INSERT INTO users (name, email, password, role, phone) VALUES (?, ?, ?, ?, ?)',
+            ['Ana Sofia Delgado', 'ana.delgado@universidad.edu', 'demo789', 'student', '+57 304 567 8901']
+        );
+
+        // === ESTUDIANTES DEMO ===
+
+        // María - Estudiante promedio
         await database.runAsync(
             'INSERT INTO students (user_id, student_code, career, semester, gpa, risk_level, enrollment_date, academic_credits, failed_subjects, absences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [result.lastInsertRowId, 'EST001', 'Ingeniería de Sistemas', 6, 3.8, 'low', '2022-01-15', 120, 2, 5]
+            [mariaResult.lastInsertRowId, 'EST001', 'Ingeniería de Sistemas', 6, 3.8, 'low', '2022-01-15', 120, 2, 5]
         );
 
-        // Insertar alertas demo
+        // Carlos - Estudiante en riesgo alto
+        await database.runAsync(
+            'INSERT INTO students (user_id, student_code, career, semester, gpa, risk_level, enrollment_date, academic_credits, failed_subjects, absences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [carlosResult.lastInsertRowId, 'EST002', 'Ingeniería Industrial', 4, 2.1, 'critical', '2023-01-15', 85, 6, 15]
+        );
+
+        // Ana - Estudiante exitosa
+        await database.runAsync(
+            'INSERT INTO students (user_id, student_code, career, semester, gpa, risk_level, enrollment_date, academic_credits, failed_subjects, absences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [anaResult.lastInsertRowId, 'EST003', 'Administración de Empresas', 8, 4.2, 'low', '2021-08-15', 180, 0, 2]
+        );
+
+        // === ALERTAS DEMO ===
+
+        // Alertas para María (riesgo bajo)
         await database.runAsync(
             'INSERT INTO alerts (student_id, type, title, message, severity) VALUES (?, ?, ?, ?, ?)',
             [1, 'academic', 'Recordatorio de Matrícula', 'La matrícula para el próximo semestre cierra el 15 de diciembre', 'high']
@@ -113,21 +155,103 @@ const insertDemoData = async () => {
 
         await database.runAsync(
             'INSERT INTO alerts (student_id, type, title, message, severity) VALUES (?, ?, ?, ?, ?)',
-            [1, 'attendance', 'Asistencia Baja', 'Has faltado 3 veces a Cálculo III este mes', 'medium']
+            [1, 'attendance', 'Asistencia Regular', 'Has faltado 3 veces a Cálculo III este mes', 'medium']
         );
 
-        // Insertar recursos demo
+        // Alertas para Carlos (riesgo crítico)
+        await database.runAsync(
+            'INSERT INTO alerts (student_id, type, title, message, severity) VALUES (?, ?, ?, ?, ?)',
+            [2, 'academic', 'GPA Crítico', 'Tu promedio académico está por debajo del mínimo requerido (2.1)', 'critical']
+        );
+
+        await database.runAsync(
+            'INSERT INTO alerts (student_id, type, title, message, severity) VALUES (?, ?, ?, ?, ?)',
+            [2, 'attendance', 'Asistencia Crítica', 'Has acumulado 15 faltas este semestre. Riesgo de pérdida de asignatura', 'critical']
+        );
+
+        await database.runAsync(
+            'INSERT INTO alerts (student_id, type, title, message, severity) VALUES (?, ?, ?, ?, ?)',
+            [2, 'financial', 'Pendiente Financiero', 'Tienes pagos pendientes que pueden afectar tu matrícula', 'high']
+        );
+
+        // Alerta para Ana (estudiante exitosa)
+        await database.runAsync(
+            'INSERT INTO alerts (student_id, type, title, message, severity) VALUES (?, ?, ?, ?, ?)',
+            [3, 'general', 'Oportunidad de Beca', 'Calificas para la beca de excelencia académica', 'low']
+        );
+
+        // === RECURSOS DEMO ===
+
+        // Recursos académicos
         await database.runAsync(
             'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
-            ['Tutorías de Matemáticas', 'Apoyo académico gratuito para materias de matemáticas', 'academic', 'tutoring', 'https://universidad.edu/tutorias']
+            ['Tutorías de Matemáticas', 'Apoyo académico gratuito para materias de matemáticas y cálculo', 'academic', 'tutoring', 'https://universidad.edu/tutorias']
         );
 
+        await database.runAsync(
+            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
+            ['Centro de Escritura', 'Apoyo para redacción de ensayos y trabajos académicos', 'academic', 'tutoring', 'https://universidad.edu/escritura']
+        );
+
+        await database.runAsync(
+            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
+            ['Laboratorio de Informática', 'Acceso libre a computadores y software especializado', 'academic', 'technology', 'https://universidad.edu/laboratorio']
+        );
+
+        // Recursos de bienestar
         await database.runAsync(
             'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
             ['Bienestar Estudiantil', 'Servicios de apoyo psicológico y social', 'support', 'wellness', 'https://universidad.edu/bienestar']
         );
 
-        console.log('Datos de demostración insertados');
+        await database.runAsync(
+            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
+            ['Consejería Académica', 'Orientación personalizada para tu plan de estudios', 'support', 'counseling', 'https://universidad.edu/consejeria']
+        );
+
+        await database.runAsync(
+            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
+            ['Programa de Mentorías', 'Conexión con estudiantes de semestres avanzados', 'support', 'mentoring', 'https://universidad.edu/mentorias']
+        );
+
+        // Recursos financieros
+        await database.runAsync(
+            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
+            ['Oficina Financiera', 'Información sobre becas, créditos y ayudas económicas', 'financial', 'aid', 'https://universidad.edu/financiera']
+        );
+
+        await database.runAsync(
+            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
+            ['Programa Trabajo-Estudio', 'Oportunidades de empleo dentro del campus', 'financial', 'employment', 'https://universidad.edu/trabajo-estudio']
+        );
+
+        // Recursos de desarrollo profesional
+        await database.runAsync(
+            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
+            ['Centro de Carrera', 'Preparación para entrevistas y búsqueda de empleo', 'career', 'development', 'https://universidad.edu/carrera']
+        );
+
+        await database.runAsync(
+            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
+            ['Prácticas Profesionales', 'Conexión con empresas para experiencia laboral', 'career', 'internships', 'https://universidad.edu/practicas']
+        );
+
+        // Recursos de salud
+        await database.runAsync(
+            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
+            ['Centro Médico', 'Servicios básicos de salud para estudiantes', 'health', 'medical', 'https://universidad.edu/salud']
+        );
+
+        await database.runAsync(
+            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
+            ['Programa de Actividad Física', 'Gimnasio y clases deportivas para estudiantes', 'health', 'fitness', 'https://universidad.edu/deportes']
+        );
+
+        console.log('✅ Datos de demostración insertados:');
+        console.log('👤 5 usuarios creados (estudiantes, admin, profesor)');
+        console.log('🎓 3 estudiantes con diferentes niveles de riesgo');
+        console.log('🚨 6 alertas de ejemplo');
+        console.log('📚 12 recursos educativos');
     } catch (error) {
         console.error('Error insertando datos demo:', error);
     }

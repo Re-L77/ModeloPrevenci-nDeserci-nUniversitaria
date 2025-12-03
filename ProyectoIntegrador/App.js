@@ -21,9 +21,9 @@ export default function App() {
       await initializeDatabase();
       console.log('Base de datos inicializada');
 
-      // Inicializar sesión del usuario
-      await userController.initializeSession();
-      console.log('Sesión inicializada');
+      // Limpiar sesión para forzar login (temporal para debugging)
+      await userController.logout();
+      console.log('Sesión limpiada');
 
       setIsLoading(false);
     } catch (error) {

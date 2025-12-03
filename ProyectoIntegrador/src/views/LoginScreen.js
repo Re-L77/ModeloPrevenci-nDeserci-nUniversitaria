@@ -2,13 +2,14 @@ import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Keyboard, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { validateEmail } from '../utils/helpers';
-import { loginUser } from '../controllers/UserController';
+import userController from '../controllers/UserController';
+import { useAuth } from '../navigation/RootNavigator';
 
 const logoImage = require('../../assets/LogoPI.png');
 
-export default function LoginScreen({ route }) {
+export default function LoginScreen() {
   const navigation = useNavigation();
-  const onLogin = route?.params?.onLogin;
+  const { login: contextLogin } = useAuth();
   const passwordRef = useRef(null);
 
   const [email, setEmail] = useState('');
@@ -45,45 +46,105 @@ export default function LoginScreen({ route }) {
   };
 
   const handleLogin = async () => {
+    console.log('=== HANDLE LOGIN INICIADO ===');
     Keyboard.dismiss();
     if (!validateFields()) return;
 
     setLoading(true);
     try {
-      const result = await loginUser(email.trim(), password);
-      const success =
-        result === true ||
-        (result && result.success === true) ||
-        (result && result.token);
+      console.log('LoginScreen: Llamando a contextLogin...');
+      const result = await contextLogin(email.trim(), password);
+      console.log('LoginScreen: Resultado recibido:', result);
+      console.log('LoginScreen: Tipo de resultado:', typeof result);
 
-      if (success) {
-        Alert.alert('Login exitoso', 'Bienvenido al sistema.', [
-          {
-            text: 'Continuar',
-            onPress: () => {
-              if (onLogin) {
-                onLogin();
-              }
-            },
-          },
-        ]);
+      // Validación más robusta
+      if (!result) {
+        console.error('LoginScreen: Result is null/undefined');
+        Alert.alert('Error', 'No se recibió respuesta del servidor');
+        return;
+      }
+
+      if (result && result.success === true) {
+        console.log('LoginScreen: Login exitoso');
+        const userData = result.user;
+        const welcomeMessage = `¡Bienvenido, ${userData?.name || 'Usuario'}!`;
+        Alert.alert('Login exitoso', welcomeMessage);
       } else {
-        Alert.alert('Error de autenticación', 'Correo o contraseña incorrectos.');
+        console.log('LoginScreen: Login falló');
+        Alert.alert('Error de autenticación', result?.message || 'Credenciales incorrectas');
       }
     } catch (error) {
-      console.error('Login error:', error);
-      Alert.alert('Error', 'Ocurrió un error al intentar iniciar sesión. Intenta de nuevo.');
+      console.error('LoginScreen: Error en catch:', error);
+      Alert.alert('Error', 'Error al intentar iniciar sesión: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const useDemoCredentials = () => {
-    setEmail('maria.garcia@universidad.edu');
-    setPassword('demo123');
+  const loginWithDemo = async (userType = 'student') => {
+    const credentials = {
+      student: { 
+        email: 'maria.garcia@universidad.edu', 
+        password: 'demo123',
+        name: 'María García López',
+        description: 'Estudiante de Ing. Sistemas con buen rendimiento académico'
+      },
+      risk: { 
+        email: 'carlos.rodriguez@universidad.edu', 
+        password: 'demo456',
+        name: 'Carlos Rodríguez',
+        description: 'Estudiante con alto riesgo de deserción que necesita apoyo'
+      },
+      admin: { 
+        email: 'admin@universidad.edu', 
+        password: 'admin123',
+        name: 'Dr. Ana Martínez',
+        description: 'Administrador con acceso completo al sistema'
+      },
+      teacher: { 
+        email: 'luis.hernandez@universidad.edu', 
+        password: 'prof123',
+        name: 'Prof. Luis Hernández',
+        description: 'Profesor consejero especializado en apoyo estudiantil'
+      },
+      excellent: { 
+        email: 'ana.delgado@universidad.edu', 
+        password: 'demo789',
+        name: 'Ana Sofia Delgado',
+        description: 'Estudiante destacada con excelente rendimiento académico'
+      }
+    };
+
+    const creds = credentials[userType] || credentials.student;
+    
+    // Llenar los campos
+    setEmail(creds.email);
+    setPassword(creds.password);
     setEmailError('');
     setPasswordError('');
-    setTimeout(() => passwordRef.current && passwordRef.current.focus(), 100);
+    
+    // Hacer login automáticamente
+    setLoading(true);
+    try {
+      console.log('Demo Login: Iniciando login automático para', creds.name);
+      const result = await contextLogin(creds.email, creds.password);
+      
+      if (result && result.success) {
+        Alert.alert(
+          `¡Bienvenido, ${creds.name}!`, 
+          creds.description,
+          [{ text: 'Continuar', style: 'default' }]
+        );
+      } else {
+        Alert.alert('Error', result?.message || 'Error en login demo');
+        // Mantener credenciales en los campos para intentar manual
+      }
+    } catch (error) {
+      console.error('Demo Login Error:', error);
+      Alert.alert('Error', 'Error en login demo: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -142,14 +203,45 @@ export default function LoginScreen({ route }) {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={useDemoCredentials}>
-          <Text style={styles.demoLink}>Usar credenciales de demostración</Text>
-        </TouchableOpacity>
+        <View style={styles.demoSection}>
+          <Text style={styles.demoSectionTitle}>🚀 Login Rápido - Demo</Text>
+          <Text style={styles.demoSectionSubtitle}>Toca cualquier botón para login automático</Text>
 
-        <View style={styles.demoBox}>
-          <Text style={styles.demoTitle}>Cuenta Demo</Text>
-          <Text>Email: maria.garcia@universidad.edu</Text>
-          <Text>Contraseña: demo123</Text>
+          <TouchableOpacity
+            style={styles.demoButton}
+            onPress={() => loginWithDemo('student')}
+            disabled={loading}
+          >
+            <Text style={styles.demoButtonText}>👩‍🎓 María García - Estudiante Regular</Text>
+            <Text style={styles.demoButtonSubtext}>Rendimiento promedio • Sin riesgo de deserción</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.demoButton, styles.demoButtonRisk]}
+            onPress={() => loginWithDemo('risk')}
+            disabled={loading}
+          >
+            <Text style={styles.demoButtonText}>⚠️ Carlos Rodríguez - Estudiante en Riesgo</Text>
+            <Text style={styles.demoButtonSubtext}>Bajo rendimiento • Requiere intervención urgente</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.demoButton, styles.demoButtonExcellent]}
+            onPress={() => loginWithDemo('excellent')}
+            disabled={loading}
+          >
+            <Text style={styles.demoButtonText}>⭐ Ana Delgado - Estudiante Destacada</Text>
+            <Text style={styles.demoButtonSubtext}>Excelencia académica • Modelo a seguir</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.demoButton, styles.demoButtonAdmin]}
+            onPress={() => loginWithDemo('admin')}
+            disabled={loading}
+          >
+            <Text style={styles.demoButtonText}>🔧 Dr. Ana Martínez - Administrador</Text>
+            <Text style={styles.demoButtonSubtext}>Vista completa del sistema • Gestión de usuarios</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -232,24 +324,53 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
-  demoLink: {
-    color: '#007AFF',
-    textAlign: 'center',
-    marginTop: 16,
-    fontSize: 14,
+  demoSection: {
+    marginTop: 20,
   },
-  demoBox: {
-    marginTop: 24,
-    padding: 14,
-    backgroundColor: '#F9F9F9',
+  demoSectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 4,
+    color: '#333',
+  },
+  demoSectionSubtitle: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: 12,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  demoButton: {
+    padding: 12,
+    marginVertical: 4,
+    backgroundColor: '#F0F8FF',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#DDD',
+    borderColor: '#007AFF',
   },
-  demoTitle: {
-    fontWeight: 'bold',
-    marginBottom: 6,
+  demoButtonRisk: {
+    backgroundColor: '#FFF5F5',
+    borderColor: '#FF5722',
+  },
+  demoButtonExcellent: {
+    backgroundColor: '#F0FFF0',
+    borderColor: '#4CAF50',
+  },
+  demoButtonAdmin: {
+    backgroundColor: '#FFF9F0',
+    borderColor: '#FF9800',
+  },
+  demoButtonText: {
     fontSize: 14,
+    fontWeight: '600',
     color: '#333',
+    textAlign: 'center',
+  },
+  demoButtonSubtext: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 2,
   },
 });
