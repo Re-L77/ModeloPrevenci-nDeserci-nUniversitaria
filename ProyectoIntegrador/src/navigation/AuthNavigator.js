@@ -2,11 +2,9 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../views/LoginScreen';
 import ForgotPasswordScreen from '../views/ForgotPasswordScreen';
+import RegisterScreen from '../views/RegisterScreen';
 
 const Stack = createNativeStackNavigator();
-
-// Navegador de Autenticación
-// Define las pantallas de login y registro
 
 const AuthNavigator = () => {
     return (
@@ -19,6 +17,17 @@ const AuthNavigator = () => {
             <Stack.Screen
                 name="Login"
                 component={LoginScreen}
+            />
+
+            <Stack.Screen
+                name="Register"
+                component={RegisterScreen}
+                options={{
+                    headerShown: true,
+                    title: 'Crear Cuenta',
+                    headerTintColor: '#007AFF',
+                    animation: 'slide_from_right'
+                }}
             />
 
             <Stack.Screen
