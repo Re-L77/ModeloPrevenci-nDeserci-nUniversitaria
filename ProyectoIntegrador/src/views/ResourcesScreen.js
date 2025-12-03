@@ -12,7 +12,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const ResourcesScreen = () => {
-  const [selectedFilter, setSelectedFilter] = useState('Todos');
+  const [selectedFilter, setSelectedFilter] = useState('Videos');
 
   const [resourcesData] = useState([
     {
@@ -23,13 +23,9 @@ const ResourcesScreen = () => {
       date: '19 nov 2025',
       fileSize: '2.5 MB',
       tags: ['PDF', 'Material de Estudio'],
-      icon: 'book-outline',
-      iconBg: '#F3E8FF',
-      iconColor: '#C084FC',
-      tagColors: [
-        { bg: '#FEE2E2', text: '#F87171' },
-        { bg: '#DBEAFE', text: '#60A5FA' },
-      ],
+      icon: 'document-outline',
+      iconBg: '#FEE2E2',
+      iconColor: '#F87171',
     },
     {
       id: '2',
@@ -42,10 +38,6 @@ const ResourcesScreen = () => {
       icon: 'videocam-outline',
       iconBg: '#DBEAFE',
       iconColor: '#3B82F6',
-      tagColors: [
-        { bg: '#DBEAFE', text: '#3B82F6' },
-        { bg: '#DBEAFE', text: '#3B82F6' },
-      ],
     },
     {
       id: '3',
@@ -55,13 +47,9 @@ const ResourcesScreen = () => {
       date: '15 nov 2025',
       fileSize: '1.8 MB',
       tags: ['PDF', 'Material de Estudio'],
-      icon: 'book-outline',
-      iconBg: '#F3E8FF',
-      iconColor: '#C084FC',
-      tagColors: [
-        { bg: '#FEE2E2', text: '#F87171' },
-        { bg: '#DBEAFE', text: '#60A5FA' },
-      ],
+      icon: 'document-outline',
+      iconBg: '#FEE2E2',
+      iconColor: '#F87171',
     },
     {
       id: '4',
@@ -74,10 +62,6 @@ const ResourcesScreen = () => {
       icon: 'videocam-outline',
       iconBg: '#DBEAFE',
       iconColor: '#3B82F6',
-      tagColors: [
-        { bg: '#DBEAFE', text: '#3B82F6' },
-        { bg: '#DBEAFE', text: '#3B82F6' },
-      ],
     },
     {
       id: '5',
@@ -87,17 +71,12 @@ const ResourcesScreen = () => {
       date: '10 nov 2025',
       fileSize: '3.2 MB',
       tags: ['PDF', 'Material de Estudio'],
-      icon: 'book-outline',
-      iconBg: '#F3E8FF',
-      iconColor: '#C084FC',
-      tagColors: [
-        { bg: '#FEE2E2', text: '#F87171' },
-        { bg: '#DBEAFE', text: '#60A5FA' },
-      ],
+      icon: 'document-outline',
+      iconBg: '#FEE2E2',
+      iconColor: '#F87171',
     },
   ]);
 
-  // Mapeo de categorías cortas a tipos completos
   const categoryMap = {
     'Todos': null,
     'Materiales': 'Material de Estudio',
@@ -106,11 +85,9 @@ const ResourcesScreen = () => {
 
   const filterResources = () => {
     const actualFilter = categoryMap[selectedFilter];
-    
     if (actualFilter === null) {
       return resourcesData;
     }
-    
     return resourcesData.filter((resource) => resource.type === actualFilter);
   };
 
@@ -118,11 +95,11 @@ const ResourcesScreen = () => {
     <View style={styles.card}>
       <View style={styles.cardContent}>
         <View style={[styles.iconContainer, { backgroundColor: item.iconBg }]}>
-          <Icon name={item.icon} size={24} color={item.iconColor} />
+          <Icon name={item.icon} size={28} color={item.iconColor} />
         </View>
 
         <View style={styles.cardTextContainer}>
-          <Text style={styles.cardTitle}>{item.title}</Text>
+          <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
           <Text style={styles.cardSubtitle}>
             {item.subject} • {item.date}
           </Text>
@@ -133,15 +110,10 @@ const ResourcesScreen = () => {
                 key={index}
                 style={[
                   styles.tag,
-                  { backgroundColor: item.tagColors[index]?.bg || '#F3F4F6' },
+                  index === 0 ? styles.tagPrimary : styles.tagSecondary,
                 ]}
               >
-                <Text
-                  style={[
-                    styles.tagText,
-                    { color: item.tagColors[index]?.text || '#4B5563' },
-                  ]}
-                >
+                <Text style={[styles.tagText, index === 0 ? styles.tagTextPrimary : styles.tagTextSecondary]}>
                   {tag}
                 </Text>
               </View>
@@ -164,69 +136,64 @@ const ResourcesScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>Buenas noches, María!</Text>
-            <Text style={styles.subtitle}>
-              Material de estudio, tutorías y más
-            </Text>
-          </View>
-          <View style={styles.notificationIconContainer}>
-            <Icon name="notifications-outline" size={24} color="#FBBF24" />
-            <View style={styles.notificationBadge} />
-          </View>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>Buenas noches, María!</Text>
+          <Text style={styles.subtitle}>
+            Material de estudio, tutorías y más
+          </Text>
         </View>
-
-        <View style={styles.searchContainer}>
-          <Icon
-            name="search-outline"
-            size={20}
-            color="#9CA3AF"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar recursos..."
-            placeholderTextColor="#9CA3AF"
-          />
+        <View style={styles.notificationIconContainer}>
+          <Icon name="notifications-outline" size={24} color="#FBBF24" />
+          <View style={styles.notificationBadge} />
         </View>
+      </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filtersContainer}
-          contentContainerStyle={styles.filtersContent}
-        >
-          {categories.map((category) => (
-            <TouchableOpacity
-              key={category}
-              style={[
-                styles.filterButton,
-                selectedFilter === category && styles.filterButtonActive,
-              ]}
-              onPress={() => setSelectedFilter(category)}
-            >
-              <Text
-                style={[
-                  styles.filterButtonText,
-                  selectedFilter === category && styles.filterButtonTextActive,
-                ]}
-              >
-                {category}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <FlatList
-          data={filterResources()}
-          renderItem={renderResourceCard}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
+      <View style={styles.searchContainer}>
+        <Icon
+          name="search-outline"
+          size={20}
+          color="#9CA3AF"
+          style={styles.searchIcon}
+        />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar recursos..."
+          placeholderTextColor="#9CA3AF"
         />
       </View>
+
+      <View style={styles.filtersContainer}>
+        {categories.map((category) => (
+          <TouchableOpacity
+            key={category}
+            style={[
+              styles.filterButton,
+              selectedFilter === category && styles.filterButtonActive,
+            ]}
+            onPress={() => setSelectedFilter(category)}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.filterButtonText,
+                selectedFilter === category && styles.filterButtonTextActive,
+              ]}
+            >
+              {category}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <FlatList
+        data={filterResources()}
+        renderItem={renderResourceCard}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        scrollEnabled={true}
+      />
     </SafeAreaView>
   );
 };
@@ -236,15 +203,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  content: {
-    flex: 1,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     paddingHorizontal: 20,
-    paddingTop: 32,
+    paddingTop: 16,
     paddingBottom: 16,
   },
   greeting: {
@@ -290,39 +254,35 @@ const styles = StyleSheet.create({
     color: '#1F2937',
   },
   filtersContainer: {
-    marginTop: 16,
-    marginBottom: 24,
-    height: 100,
-  },
-  filtersContent: {
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  filterButton: {
-    paddingHorizontal: 28,
-    paddingVertical: 14,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 24,
-    marginRight: 14,
-    minHeight: 48,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'row',
+    marginBottom: 16,
+    height: 44,
+    paddingHorizontal: 20,
+  },
+  filterButton: {
+    width: 100,
+    height: 44,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 0,
+    margin: 0,
+    marginHorizontal: 6,
   },
   filterButtonActive: {
     backgroundColor: '#3B82F6',
   },
   filterButtonText: {
-    fontSize: 16,
-    color: '#4B5563',
+    fontSize: 15,
+    color: '#9CA3AF',
     fontWeight: '600',
-    textAlign: 'center',
-    includeFontPadding: false,
   },
   filterButtonTextActive: {
     color: '#FFFFFF',
-    fontWeight: '700',
+    fontWeight: '600',
   },
   listContent: {
     paddingHorizontal: 20,
@@ -330,14 +290,9 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
@@ -346,11 +301,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   iconContainer: {
-    width: 48,
-    height: 48,
+    width: 56,
+    height: 56,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    flexShrink: 0,
   },
   cardTextContainer: {
     flex: 1,
@@ -362,23 +318,36 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   cardSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#9CA3AF',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   tagsContainer: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 10,
+    flexWrap: 'wrap',
   },
   tag: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: 6,
+  },
+  tagPrimary: {
+    backgroundColor: '#DBEAFE',
+  },
+  tagSecondary: {
+    backgroundColor: '#F3F4F6',
   },
   tagText: {
     fontSize: 12,
     fontWeight: '500',
+  },
+  tagTextPrimary: {
+    color: '#3B82F6',
+  },
+  tagTextSecondary: {
+    color: '#6B7280',
   },
   cardFooter: {
     flexDirection: 'row',
@@ -386,52 +355,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   fileSize: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#9CA3AF',
   },
   downloadButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#3B82F6',
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 12,
-    gap: 8,
+    borderRadius: 8,
+    gap: 6,
   },
   downloadButtonText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-  },
-  navItem: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  navIconContainer: {
-    position: 'relative',
-  },
-  navText: {
-    fontSize: 12,
-    color: '#9CA3AF',
-  },
-  navTextActive: {
-    color: '#3B82F6',
-  },
-  navBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -8,
-    width: 16,
-    height: 16,
-    backgroundColor: '#EF4444',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  navBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '700',
   },
 });
 
