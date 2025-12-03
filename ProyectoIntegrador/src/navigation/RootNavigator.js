@@ -21,9 +21,21 @@ const RootNavigator = () => {
         return null;
     }
 
+    const handleLogin = () => {
+        setIsAuthenticated(true);
+    };
+
+    const handleLogout = () => {
+        setIsAuthenticated(false);
+    };
+
     return (
         <NavigationContainer>
-            {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
+            {isAuthenticated ? (
+                <AppNavigator onLogout={handleLogout} />
+            ) : (
+                <AuthNavigator onLogin={handleLogin} />
+            )}
         </NavigationContainer>
     );
 };

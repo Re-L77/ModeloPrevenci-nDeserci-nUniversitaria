@@ -7,14 +7,18 @@ const Stack = createNativeStackNavigator();
 // Navegador de Autenticación
 // Define las pantallas de login y registro
 
-const AuthNavigator = () => {
+const AuthNavigator = ({ onLogin }) => {
     return (
         <Stack.Navigator
             screenOptions={{
                 headerShown: false,
             }}
         >
-            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen
+                name="Login"
+                component={LoginScreen}
+                initialParams={{ onLogin }}
+            />
             {/* TODO: Agregar más pantallas de autenticación */}
         </Stack.Navigator>
     );

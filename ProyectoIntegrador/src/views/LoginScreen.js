@@ -6,8 +6,9 @@ import { loginUser } from '../controllers/UserController';
 
 const logoImage = require('../../assets/LogoPI.png');
 
-export default function LoginScreen() {
+export default function LoginScreen({ route }) {
   const navigation = useNavigation();
+  const onLogin = route?.params?.onLogin;
   const passwordRef = useRef(null);
 
   const [email, setEmail] = useState('');
@@ -60,10 +61,9 @@ export default function LoginScreen() {
           {
             text: 'Continuar',
             onPress: () => {
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Home' }],
-              });
+              if (onLogin) {
+                onLogin();
+              }
             },
           },
         ]);
