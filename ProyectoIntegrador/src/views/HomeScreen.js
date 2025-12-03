@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 20,
     width: '100%',
   },
   header: {

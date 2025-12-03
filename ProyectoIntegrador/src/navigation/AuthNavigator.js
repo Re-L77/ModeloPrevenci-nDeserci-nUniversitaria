@@ -5,7 +5,10 @@ import ForgotPasswordScreen from '../views/ForgotPasswordScreen';
 
 const Stack = createNativeStackNavigator();
 
-const AuthNavigator = ({ onLogin }) => {
+// Navegador de Autenticación
+// Define las pantallas de login y registro
+
+const AuthNavigator = () => {
     return (
         <Stack.Navigator
             screenOptions={{
@@ -16,7 +19,6 @@ const AuthNavigator = ({ onLogin }) => {
             <Stack.Screen
                 name="Login"
                 component={LoginScreen}
-                initialParams={{ onLogin }}
             />
             
             <Stack.Screen

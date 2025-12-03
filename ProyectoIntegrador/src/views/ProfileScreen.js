@@ -5,17 +5,42 @@ import {
     StyleSheet,
     ScrollView,
     TouchableOpacity,
-    Image,
+    Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../navigation/RootNavigator';
 
 // Vista de Perfil
 // TODO: Implementar lógica completa de perfil y configuración
 
 const ProfileScreen = ({ navigation }) => {
+    const { logout, currentUser } = useAuth();
+
     const handleLogout = () => {
-        // TODO: Implementar lógica de logout
-        console.log('Logout');
+        Alert.alert(
+            'Cerrar Sesión',
+            '¿Estás seguro de que deseas cerrar sesión?',
+            [
+                {
+                    text: 'Cancelar',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Cerrar Sesión',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            console.log('ProfileScreen: Cerrando sesión...');
+                            await logout();
+                            console.log('ProfileScreen: Sesión cerrada exitosamente');
+                        } catch (error) {
+                            console.error('ProfileScreen: Error cerrando sesión:', error);
+                            Alert.alert('Error', 'No se pudo cerrar la sesión correctamente');
+                        }
+                    },
+                },
+            ]
+        );
     };
 
     const handleEditProfile = () => {
@@ -32,25 +57,45 @@ const ProfileScreen = ({ navigation }) => {
             <View style={styles.profileSection}>
                 <View style={styles.avatarContainer}>
                     <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>MG</Text>
+                        <Text style={styles.avatarText}>
+                            {currentUser?.name?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'US'}
+                        </Text>
                     </View>
                 </View>
-                <Text style={styles.userName}>María García</Text>
-                <Text style={styles.userCareer}>Ingeniería en Sistemas</Text>
-                <Text style={styles.userStatus}>Excelente</Text>
+                <Text style={styles.userName}>{currentUser?.name || 'Usuario'}</Text>
+                <Text style={styles.userCareer}>
+                    {currentUser?.student?.career ||
+                        (currentUser?.role === 'admin' ? 'Administrador' :
+                            currentUser?.role === 'teacher' ? 'Profesor' : 'Usuario')}
+                </Text>
+                <Text style={[
+                    styles.userStatus,
+                    currentUser?.student?.risk_level === 'critical' ? styles.riskCritical :
+                        currentUser?.student?.risk_level === 'high' ? styles.riskHigh :
+                            currentUser?.student?.risk_level === 'medium' ? styles.riskMedium :
+                                styles.riskLow
+                ]}>
+                    {currentUser?.student?.risk_level === 'low' ? '✅ Bajo Riesgo' :
+                        currentUser?.student?.risk_level === 'medium' ? '⚠️ Riesgo Medio' :
+                            currentUser?.student?.risk_level === 'high' ? '🔴 Alto Riesgo' :
+                                currentUser?.student?.risk_level === 'critical' ? '🚨 Riesgo Crítico' :
+                                    '✅ Estado Normal'}
+                </Text>
             </View>
 
             {/* Estadísticas */}
-            <View style={styles.statsSection}>
-                <View style={styles.statBox}>
-                    <Text style={styles.statNumber}>9.06</Text>
-                    <Text style={styles.statLabel}>Promedio General</Text>
+            {currentUser?.student && (
+                <View style={styles.statsSection}>
+                    <View style={styles.statBox}>
+                        <Text style={styles.statNumber}>{currentUser.student.gpa || '0.0'}</Text>
+                        <Text style={styles.statLabel}>Promedio General</Text>
+                    </View>
+                    <View style={styles.statBox}>
+                        <Text style={styles.statNumber}>{currentUser.student.semester || '1'}</Text>
+                        <Text style={styles.statLabel}>Semestre Actual</Text>
+                    </View>
                 </View>
-                <View style={styles.statBox}>
-                    <Text style={styles.statNumber}>5</Text>
-                    <Text style={styles.statLabel}>Semestre Actual</Text>
-                </View>
-            </View>
+            )}
 
             {/* Información de Contacto */}
             <View style={styles.infoSection}>
@@ -58,18 +103,36 @@ const ProfileScreen = ({ navigation }) => {
 
                 <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>Correo Electrónico</Text>
-                    <Text style={styles.infoValue}>maria.garcia@universidad.edu</Text>
+                    <Text style={styles.infoValue}>{currentUser?.email || 'No disponible'}</Text>
                 </View>
 
                 <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Carrera</Text>
-                    <Text style={styles.infoValue}>Ingeniería en Sistemas</Text>
+                    <Text style={styles.infoLabel}>Tipo de Usuario</Text>
+                    <Text style={styles.infoValue}>
+                        {currentUser?.role === 'student' ? 'Estudiante' :
+                            currentUser?.role === 'admin' ? 'Administrador' :
+                                currentUser?.role === 'teacher' ? 'Profesor' : 'Usuario'}
+                    </Text>
                 </View>
 
-                <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Semestre</Text>
-                    <Text style={styles.infoValue}>5</Text>
-                </View>
+                {currentUser?.student && (
+                    <>
+                        <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Carrera</Text>
+                            <Text style={styles.infoValue}>{currentUser.student.career}</Text>
+                        </View>
+
+                        <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Semestre</Text>
+                            <Text style={styles.infoValue}>{currentUser.student.semester}</Text>
+                        </View>
+
+                        <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Código Estudiantil</Text>
+                            <Text style={styles.infoValue}>{currentUser.student.student_code}</Text>
+                        </View>
+                    </>
+                )}
             </View>
 
             {/* Sección de Configuración */}
@@ -109,6 +172,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#F8F8F8',
         paddingTop: 40,
+        paddingHorizontal: 20,
     },
     profileSection: {
         alignItems: 'center',
@@ -117,7 +181,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         borderBottomWidth: 1,
         borderBottomColor: '#E5E5EA',
-        marginHorizontal: 15,
+        marginHorizontal: 0,
         marginBottom: 20,
         borderRadius: 12,
     },
@@ -150,8 +214,19 @@ const styles = StyleSheet.create({
     },
     userStatus: {
         fontSize: 14,
+        fontWeight: '600',
+    },
+    riskLow: {
         color: '#34C759',
-        fontWeight: '500',
+    },
+    riskMedium: {
+        color: '#FF9500',
+    },
+    riskHigh: {
+        color: '#FF5722',
+    },
+    riskCritical: {
+        color: '#FF3B30',
     },
     statsSection: {
         flexDirection: 'row',
@@ -182,7 +257,7 @@ const styles = StyleSheet.create({
     },
     infoSection: {
         backgroundColor: '#FFFFFF',
-        marginHorizontal: 15,
+        marginHorizontal: 0,
         marginBottom: 15,
         borderRadius: 12,
         paddingVertical: 15,
@@ -192,7 +267,7 @@ const styles = StyleSheet.create({
     },
     configSection: {
         backgroundColor: '#FFFFFF',
-        marginHorizontal: 15,
+        marginHorizontal: 0,
         marginBottom: 15,
         borderRadius: 12,
         overflow: 'hidden',
@@ -239,7 +314,7 @@ const styles = StyleSheet.create({
     },
     logoutButton: {
         flexDirection: 'row',
-        marginHorizontal: 15,
+        marginHorizontal: 0,
         marginBottom: 20,
         paddingVertical: 16,
         paddingHorizontal: 20,
@@ -259,7 +334,7 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
         borderTopWidth: 1,
         borderTopColor: '#E5E5EA',
-        marginHorizontal: 15,
+        marginHorizontal: 0,
     },
     footerText: {
         fontSize: 12,
