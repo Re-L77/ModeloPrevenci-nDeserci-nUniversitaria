@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Keyboard, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Keyboard, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { validateEmail } from '../utils/helpers';
 import userController from '../controllers/UserController';
@@ -73,104 +73,124 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.page}>
-      <View style={styles.card}>
-        <Image source={logoImage} style={styles.logo} />
-        <Text style={styles.title}>Bienvenido</Text>
-        <Text style={styles.subtitle}>Sistema de Prevención de Deserción</Text>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.page}>
+          <View style={styles.card}>
+            <Image source={logoImage} style={styles.logo} />
+            <Text style={styles.title}>Bienvenido</Text>
+            <Text style={styles.subtitle}>Sistema de Prevención de Deserción</Text>
 
-        <Text style={styles.label}>Correo Electrónico</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="nombre@ejemplo.com"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+            <Text style={styles.label}>Correo Electrónico</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="nombre@ejemplo.com"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
 
-        <Text style={styles.label}>Contraseña</Text>
-        <TextInput
-          ref={passwordRef}
-          style={styles.input}
-          placeholder="********"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+            <Text style={styles.label}>Contraseña</Text>
+            <TextInput
+              ref={passwordRef}
+              style={styles.input}
+              placeholder="********"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
 
-        {/* --- BOTÓN QUE ACTIVA LA NAVEGACIÓN EN PILA --- */}
-        <TouchableOpacity
-          onPress={() => navigation.navigate('ForgotPassword')}
-          style={styles.forgotContainer}
-        >
-          <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
-        </TouchableOpacity>
+            {/* --- BOTÓN QUE ACTIVA LA NAVEGACIÓN EN PILA --- */}
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ForgotPassword')}
+              style={styles.forgotContainer}
+            >
+              <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Iniciar Sesión</Text>}
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Iniciar Sesión</Text>}
+            </TouchableOpacity>
 
-        {/* SECCIÓN DE USUARIOS DE DEMOSTRACIÓN */}
-        <View style={styles.demoSection}>
-          <Text style={styles.demoSectionTitle}>🎯 Usuarios de Demostración</Text>
-          <Text style={styles.demoSectionSubtitle}>Haz clic para probar diferentes perfiles</Text>
+            {/* SECCIÓN DE USUARIOS DE DEMOSTRACIÓN */}
+            <View style={styles.demoSection}>
+              <Text style={styles.demoSectionTitle}>🎯 Usuarios de Demostración</Text>
+              <Text style={styles.demoSectionSubtitle}>Haz clic para probar diferentes perfiles</Text>
 
-          <TouchableOpacity
-            style={[styles.demoButton, styles.demoButtonRisk]}
-            onPress={() => handleDemoLogin({ email: 'carlos.rodriguez@universidad.edu', password: 'demo456' })}
-            disabled={loading}
-          >
-            <Text style={styles.demoButtonText}>👨‍🎓 Carlos Rodríguez</Text>
-            <Text style={styles.demoButtonSubtext}>Estudiante - Riesgo Alto</Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.demoButton, styles.demoButtonRisk]}
+                onPress={() => handleDemoLogin({ email: 'carlos.rodriguez@universidad.edu', password: 'demo456' })}
+                disabled={loading}
+              >
+                <Text style={styles.demoButtonText}>👨‍🎓 Carlos Rodríguez</Text>
+                <Text style={styles.demoButtonSubtext}>Estudiante - Riesgo Alto</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.demoButton, styles.demoButtonExcellent]}
-            onPress={() => handleDemoLogin({ email: 'maria.garcia@universidad.edu', password: 'demo123' })}
-            disabled={loading}
-          >
-            <Text style={styles.demoButtonText}>👩‍🎓 María García</Text>
-            <Text style={styles.demoButtonSubtext}>Estudiante - Rendimiento Bueno</Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.demoButton, styles.demoButtonExcellent]}
+                onPress={() => handleDemoLogin({ email: 'maria.garcia@universidad.edu', password: 'demo123' })}
+                disabled={loading}
+              >
+                <Text style={styles.demoButtonText}>👩‍🎓 María García</Text>
+                <Text style={styles.demoButtonSubtext}>Estudiante - Rendimiento Bueno</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.demoButton, styles.demoButtonExcellent]}
-            onPress={() => handleDemoLogin({ email: 'ana.delgado@universidad.edu', password: 'demo789' })}
-            disabled={loading}
-          >
-            <Text style={styles.demoButtonText}>👩‍🎓 Ana Delgado</Text>
-            <Text style={styles.demoButtonSubtext}>Estudiante - Rendimiento Excelente</Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.demoButton, styles.demoButtonExcellent]}
+                onPress={() => handleDemoLogin({ email: 'ana.delgado@universidad.edu', password: 'demo789' })}
+                disabled={loading}
+              >
+                <Text style={styles.demoButtonText}>👩‍🎓 Ana Delgado</Text>
+                <Text style={styles.demoButtonSubtext}>Estudiante - Rendimiento Excelente</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.demoButton, styles.demoButtonAdmin]}
-            onPress={() => handleDemoLogin({ email: 'admin@universidad.edu', password: 'admin123' })}
-            disabled={loading}
-          >
-            <Text style={styles.demoButtonText}>👩‍💼 Dr. Ana Martínez</Text>
-            <Text style={styles.demoButtonSubtext}>Administrador</Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.demoButton, styles.demoButtonAdmin]}
+                onPress={() => handleDemoLogin({ email: 'admin@universidad.edu', password: 'admin123' })}
+                disabled={loading}
+              >
+                <Text style={styles.demoButtonText}>👩‍💼 Dr. Ana Martínez</Text>
+                <Text style={styles.demoButtonSubtext}>Administrador</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.demoButton}
-            onPress={() => handleDemoLogin({ email: 'luis.hernandez@universidad.edu', password: 'prof123' })}
-            disabled={loading}
-          >
-            <Text style={styles.demoButtonText}>👨‍🏫 Prof. Luis Hernández</Text>
-            <Text style={styles.demoButtonSubtext}>Profesor/Consejero</Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.demoButton}
+                onPress={() => handleDemoLogin({ email: 'luis.hernandez@universidad.edu', password: 'prof123' })}
+                disabled={loading}
+              >
+                <Text style={styles.demoButtonText}>👨‍🏫 Prof. Luis Hernández</Text>
+                <Text style={styles.demoButtonSubtext}>Profesor/Consejero</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F0F2F5',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    minHeight: '100%',
+  },
   page: {
     flex: 1,
     backgroundColor: '#F0F2F5',

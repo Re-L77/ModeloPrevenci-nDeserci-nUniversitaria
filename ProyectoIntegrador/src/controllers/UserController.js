@@ -292,6 +292,117 @@ class UserController {
   getAuthToken() {
     return this.authToken;
   }
+
+  // Solicitar recuperación de contraseña
+  async requestPasswordReset(email) {
+    try {
+      if (!email) {
+        return { success: false, message: 'Email es requerido' };
+      }
+
+      const user = await User.findByEmail(email.toLowerCase());
+      if (!user) {
+        // Por seguridad, no revelamos si el email existe o no
+        return {
+          success: true,
+          message: 'Si el correo está registrado, recibirás las instrucciones de recuperación'
+        };
+      }
+
+      // Generar código de recuperación de 6 dígitos
+      const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const resetExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+
+      // En un entorno real, aquí enviarías un email
+      // Para la demo, guardamos el código en memoria
+      if (!this.resetCodes) this.resetCodes = new Map();
+      this.resetCodes.set(email.toLowerCase(), {
+        code: resetCode,
+        expiry: resetExpiry,
+        userId: user.id
+      });
+
+      console.log(`🔑 Código de recuperación para ${email}: ${resetCode}`);
+
+      return {
+        success: true,
+        message: 'Si el correo está registrado, recibirás las instrucciones de recuperación',
+        demoCode: resetCode // Solo para la demo
+      };
+    } catch (error) {
+      console.error('Error requesting password reset:', error);
+      return {
+        success: false,
+        message: 'Error interno del servidor'
+      };
+    }
+  }
+
+  // Verificar código de recuperación
+  async verifyResetCode(email, code) {
+    try {
+      if (!this.resetCodes) {
+        return { success: false, message: 'No hay solicitudes de recuperación pendientes' };
+      }
+
+      const resetData = this.resetCodes.get(email.toLowerCase());
+      if (!resetData) {
+        return { success: false, message: 'Código de recuperación no válido' };
+      }
+
+      if (new Date() > resetData.expiry) {
+        this.resetCodes.delete(email.toLowerCase());
+        return { success: false, message: 'El código ha expirado. Solicita uno nuevo' };
+      }
+
+      if (resetData.code !== code) {
+        return { success: false, message: 'Código incorrecto' };
+      }
+
+      return {
+        success: true,
+        message: 'Código verificado correctamente',
+        userId: resetData.userId
+      };
+    } catch (error) {
+      console.error('Error verifying reset code:', error);
+      return { success: false, message: 'Error interno del servidor' };
+    }
+  }
+
+  // Resetear contraseña con código
+  async resetPasswordWithCode(email, code, newPassword) {
+    try {
+      // Verificar código primero
+      const verification = await this.verifyResetCode(email, code);
+      if (!verification.success) {
+        return verification;
+      }
+
+      if (newPassword.length < 6) {
+        return { success: false, message: 'La contraseña debe tener al menos 6 caracteres' };
+      }
+
+      // Buscar usuario y actualizar contraseña
+      const user = await User.findById(verification.userId);
+      if (!user) {
+        return { success: false, message: 'Usuario no encontrado' };
+      }
+
+      await user.updatePassword(newPassword);
+
+      // Limpiar código de recuperación
+      this.resetCodes.delete(email.toLowerCase());
+
+      return {
+        success: true,
+        message: 'Contraseña actualizada exitosamente'
+      };
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      return { success: false, message: 'Error interno del servidor' };
+    }
+  }
 }
 
 // Instancia singleton del controlador
