@@ -1,128 +1,179 @@
 import React, { useState, useEffect } from 'react';
-import {View,Text,ScrollView,TouchableOpacity,StyleSheet,StatusBar,Dimensions,} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, StatusBar, Dimensions, SafeAreaView, } from 'react-native';
+import { useAuth } from '../navigation/RootNavigator';
+import alertController from '../controllers/AlertController';
+import resourceController from '../controllers/ResourceController';
+import studentController from '../controllers/StudentController';
 
 const { width } = Dimensions.get('window');
 
 
 //   Descripción: Pantalla principal del estudiante que muestra su desempeño académico
- 
+
 export default function PantallaPrincipalEstudiante() {
-  // ESTADO
-  //  Datos del estudiante: nombre, programa, promedio, asistencia, etc.
-   
-  const [datosEstudiante, setDatosEstudiante] = useState({
-    name: 'María',
-    program: 'Ingeniería en Sistemas',
-    semester: 'Semestre 5',
-    gpa: 9.06,
-    maxGpa: 10.0,
+  const { currentUser } = useAuth();
+  const [alertas, setAlertas] = useState([]);
+  const [materias, setMaterias] = useState([]);
+  const [recursos, setRecursos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Datos del estudiante calculados dinámicamente
+  const datosEstudiante = {
+    name: currentUser?.name?.split(' ')[0] || 'Usuario',
+    program: currentUser?.student?.career || 'Programa no definido',
+    semester: `Semestre ${currentUser?.student?.semester || 'N/A'}`,
+    gpa: currentUser?.student?.gpa || 0.0,
+    maxGpa: 5.0,
     gpaChange: 0.15,
-    attendance: 89.6,
+    attendance: calculateAttendance(currentUser?.student),
     lastAttendanceUpdate: 80,
-    materiasEnRiesgo: 1,
-    creditosTotales: 18,
-  });
+    materiasEnRiesgo: materias.filter(m => m.status === 'En Riesgo').length,
+    creditosTotales: materias.reduce((sum, m) => sum + m.credits, 0),
+  };
 
-  
-  //   Alertas del estudiante
-  //   Tipos: low_attendance ES PARA ASISTENCIA BAJA, at_risk CALIF EN RIESGOOO
-  
-  const [alertas, setAlertas] = useState([
-    {
-      id: 1,
-      type: 'low_attendance',
-      title: 'Asistencia Baja',
-      message: 'Tu asistencia en Matemáticas Discretas es del 78%. Se requiere mínimo 80%.',
-      visible: true,
-    },
-    {
-      id: 2,
-      type: 'at_risk',
-      title: 'Calificación en Riesgo',
-      message: 'Tu promedio de 7.2 en Matemáticas Discretas está por debajo del mínimo recomendado.',
-      visible: true,
-    },
-  ]);
+  // Calcular asistencia basada en las faltas del estudiante
+  function calculateAttendance(student) {
+    if (!student) return 85.0;
+    const absences = student.absences || 0;
+    return Math.max(60, 100 - (absences * 1.5));
+  }
+
+  // Cargar todos los datos desde la base de datos
+  useEffect(() => {
+    const loadAllData = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        console.log('HomeScreen: Cargando datos para usuario:', currentUser.name);
+
+        // Cargar alertas si es estudiante
+        if (currentUser?.student?.id) {
+          console.log('HomeScreen: Cargando alertas para estudiante ID:', currentUser.student.id);
+          const alertResult = await alertController.getAlertsByStudent(currentUser.student.id);
+
+          if (alertResult.success) {
+            const alertasUI = alertResult.data.map(alert => ({
+              id: alert.id,
+              type: alert.type,
+              title: alert.title,
+              message: alert.message,
+              visible: alert.status === 'active',
+              severity: alert.severity
+            }));
+            setAlertas(alertasUI);
+          }
+
+          // Generar materias simuladas basadas en datos reales del estudiante
+          const materiasSimuladas = generateStudentSubjects(currentUser.student);
+          setMaterias(materiasSimuladas);
+        }
+
+        // Cargar recursos recientes
+        const resourceResult = await resourceController.getAllResources();
+        if (resourceResult.success) {
+          // Tomar solo los primeros 3 recursos
+          setRecursos(resourceResult.data.slice(0, 3));
+        }
+
+      } catch (error) {
+        console.error('HomeScreen: Error cargando datos:', error);
+        setAlertas([]);
+        setMaterias([]);
+        setRecursos([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAllData();
+  }, [currentUser]);
+
+  // Generar materias simuladas basadas en el estudiante real
+  const generateStudentSubjects = (student) => {
+    const baseSubjects = [
+      { code: 'BD202', name: 'Base de Datos II', professor: 'Dr. Carlos Ruiz', credits: 4 },
+      { code: 'DW301', name: 'Desarrollo Web', professor: 'Ing. Laura Méndez', credits: 4 },
+      { code: 'MD205', name: 'Matemáticas Discretas', professor: 'Dr. Roberto Silva', credits: 3 },
+      { code: 'AA504', name: 'Algoritmos Avanzados', professor: 'Dra. Ana Torres', credits: 4 },
+      { code: 'RC401', name: 'Redes de Computadoras', professor: 'Ing. Miguel López', credits: 4 }
+    ];
+
+    return baseSubjects.map((subject, index) => {
+      // Generar notas basadas en el GPA del estudiante
+      const baseGrade = student.gpa || 3.5;
+      const variation = (Math.random() - 0.5) * 1.5;
+      const grade = Math.max(1.0, Math.min(5.0, baseGrade + variation));
+
+      // Calcular asistencia basada en las faltas
+      const absences = student.absences || 0;
+      const attendance = Math.max(60, 100 - (absences * 2) - (Math.random() * 10));
+
+      // Determinar estado basado en la nota
+      let status, statusColor;
+      if (grade >= 4.0) {
+        status = 'Excelente';
+        statusColor = '#10b981';
+      } else if (grade >= 3.0) {
+        status = 'Bueno';
+        statusColor = '#3b82f6';
+      } else {
+        status = 'En Riesgo';
+        statusColor = '#ef4444';
+      }
+
+      return {
+        id: index + 1,
+        code: subject.code,
+        name: subject.name,
+        professor: subject.professor,
+        grade: parseFloat(grade.toFixed(1)),
+        attendance: Math.round(attendance),
+        credits: subject.credits,
+        status,
+        statusColor
+      };
+    });
+  };
 
 
-  //   Materias inscritas del estudiante
-  //  contiene: código, nombre, profesor, calificación, asistencia, créditos, estado
 
-  const [materias, setMaterias] = useState([
-    {
-      id: 1,
-      code: 'BD202',
-      name: 'Base de Datos II',
-      professor: 'Dr. Carlos Ruiz',
-      grade: 9.8,
-      attendance: 95,
-      credits: 4,
-      status: 'Excelente',
-      statusColor: '#10b981',
-    },
-    {
-      id: 2,
-      code: 'DW301',
-      name: 'Desarrollo Web',
-      professor: 'Ing. Laura Méndez',
-      grade: 9.5,
-      attendance: 92,
-      credits: 4,
-      status: 'Excelente',
-      statusColor: '#10b981',
-    },
-    {
-      id: 3,
-      code: 'MD205',
-      name: 'Matemáticas Discretas',
-      professor: 'Dr. Roberto Silva',
-      grade: 7.2,
-      attendance: 78,
-      credits: 3,
-      status: 'En Riesgo',
-      statusColor: '#ef4444',
-    },
-    {
-      id: 4,
-      code: 'AA504',
-      name: 'Algoritmos Avanzados',
-      professor: 'Dra. Ana Torres',
-      grade: 9.7,
-      attendance: 98,
-      credits: 4,
-      status: 'Excelente',
-      statusColor: '#10b981',
-    },
-    {
-      id: 5,
-      code: 'RC401',
-      name: 'Redes de Computadoras',
-      professor: 'Ing. Miguel López',
-      grade: 8.9,
-      attendance: 88,
-      credits: 4,
-      status: 'Bueno',
-      statusColor: '#3b82f6',
-    },
-  ]);
 
-  //  Historial de promedio por semestre
-  //   Se usa para generar gráficos de evolución académica
-  
-  const [historialPromedio, setHistorialPromedio] = useState([
-    { semester: 'S1', gpa: 8.5 },
-    { semester: 'S2', gpa: 8.8 },
-    { semester: 'S3', gpa: 8.9 },
-    { semester: 'S4', gpa: 8.91 },
-    { semester: 'S5', gpa: 9.06 },
-  ]);
+
+
+
+  // Generar historial de promedio dinámico
+  const generateGradeHistory = (currentSemester, currentGpa) => {
+    const semester = parseInt(currentSemester) || 5;
+    const gpa = parseFloat(currentGpa) || 3.5;
+    const history = [];
+
+    // Generar historial progresivo hacia el GPA actual
+    for (let i = Math.max(1, semester - 4); i <= semester; i++) {
+      const progress = (i - Math.max(1, semester - 4)) / Math.max(1, 4);
+      const historicalGpa = Math.max(2.0, gpa - (1 - progress) * 1.0 + (Math.random() - 0.5) * 0.3);
+      history.push({
+        semester: `S${i}`,
+        gpa: parseFloat(historicalGpa.toFixed(2))
+      });
+    }
+
+    return history;
+  };
+
+  const historialPromedio = generateGradeHistory(
+    currentUser?.student?.semester,
+    currentUser?.student?.gpa
+  );
 
 
   // CÁLCULOS Y FUNCIONES AUXILIARES
-    // Calcula la distribución de estados de las materias
-    // Retorna porcentajes de: Excelente, Bueno, En Riesgo usando la grafica de pastel
+  // Calcula la distribución de estados de las materias
+  // Retorna porcentajes de: Excelente, Bueno, En Riesgo usando la grafica de pastel
 
-   
+
   const calcularDistribucionEstados = () => {
     const total = materias.length;
     const excelente = materias.filter(m => m.status === 'Excelente').length;
@@ -139,26 +190,82 @@ export default function PantallaPrincipalEstudiante() {
   const distEstados = calcularDistribucionEstados();
 
 
-    // Convierte un promedio a altura de barra para el gráfico
+  // Convierte un promedio a altura de barra para el gráfico
 
   const obtenerAlturaBarra = (promedio) => {
     return Math.round((promedio / 10) * 100);
   };
 
-  
+
   //  Elimina una alerta por su ID
   //   Se ejecuta cuando el usuario hace clic en la X de la alerta
-  
+
   const eliminarAlerta = (id) => {
     setAlertas(alertas.filter(alerta => alerta.id !== id));
+  };
+
+  const getAlertStyle = (alerta) => {
+    const styles = {
+      critical: {
+        borderColor: '#dc3545', // Rojo crítico
+        iconBg: '#f8d7da',
+        iconColor: '#dc3545',
+        icon: '🚨'
+      },
+      high: {
+        borderColor: '#fd7e14', // Naranja alto
+        iconBg: '#ffeaa7',
+        iconColor: '#fd7e14',
+        icon: '⚠️'
+      },
+      medium: {
+        borderColor: '#ffc107', // Amarillo medio
+        iconBg: '#fff3cd',
+        iconColor: '#ffc107',
+        icon: '⚠'
+      },
+      low: {
+        borderColor: '#17a2b8', // Azul bajo
+        iconBg: '#d1ecf1',
+        iconColor: '#17a2b8',
+        icon: 'ℹ️'
+      },
+      info: {
+        borderColor: '#6f42c1', // Púrpura info
+        iconBg: '#e2d9f3',
+        iconColor: '#6f42c1',
+        icon: '💡'
+      }
+    };
+
+    // Determinar estilo por severidad primero, luego por tipo
+    let alertStyle = styles.medium; // Por defecto
+
+    if (alerta.severity && styles[alerta.severity]) {
+      alertStyle = styles[alerta.severity];
+    } else if (alerta.type) {
+      // Mapear tipos a severidades
+      const typeMapping = {
+        'attendance': 'high',
+        'grades': 'medium',
+        'academic': 'medium',
+        'financial': 'critical',
+        'administrative': 'low',
+        'general': 'info'
+      };
+      const mappedSeverity = typeMapping[alerta.type] || 'medium';
+      alertStyle = styles[mappedSeverity];
+    }
+
+    return alertStyle;
   };
 
 
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
-      
+
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Encabezado con saludo personalizado y programa del estudiante */}
         <View style={styles.header}>
@@ -170,31 +277,36 @@ export default function PantallaPrincipalEstudiante() {
 
         {/* ===== CONTENEDOR PRINCIPAL ===== */}
         <View style={styles.contentContainer}>
-          
+
           {/* SECCIÓN: ALERTAS */}
           {/* Muestra alertas sobre asistencia baja o calificaciones en riesgo */}
-   
+
           {alertas.filter(a => a.visible).length > 0 && (
             <View style={styles.alertsContainer}>
-              {alertas.filter(a => a.visible).map((alerta) => (
-                <View key={alerta.id} style={styles.alertCard}>
-                  <View style={styles.alertIcon}>
-                    <Text style={styles.alertIconText}>⚠</Text>
+              {alertas.filter(a => a.visible).map((alerta) => {
+                const alertStyle = getAlertStyle(alerta);
+                return (
+                  <View key={alerta.id} style={[styles.alertCard, { borderLeftColor: alertStyle.borderColor }]}>
+                    <View style={[styles.alertIcon, { backgroundColor: alertStyle.iconBg }]}>
+                      <Text style={[styles.alertIconText, { color: alertStyle.iconColor }]}>
+                        {alertStyle.icon}
+                      </Text>
+                    </View>
+                    <View style={styles.alertContent}>
+                      <Text style={styles.alertTitle}>{alerta.title}</Text>
+                      <Text style={styles.alertMessage}>{alerta.message}</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => eliminarAlerta(alerta.id)} style={styles.dismissButton}>
+                      <Text style={styles.dismissText}>✕</Text>
+                    </TouchableOpacity>
                   </View>
-                  <View style={styles.alertContent}>
-                    <Text style={styles.alertTitle}>{alerta.title}</Text>
-                    <Text style={styles.alertMessage}>{alerta.message}</Text>
-                  </View>
-                  <TouchableOpacity onPress={() => eliminarAlerta(alerta.id)} style={styles.dismissButton}>
-                    <Text style={styles.dismissText}>✕</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
+                );
+              })}
             </View>
           )}
 
           {/* SECCIÓN: ESTADÍSTICAS */}
-              {/* - Promedio General
+          {/* - Promedio General
               - Asistencia
               - Materias en Riesgo
               - Créditos Totales  */}
@@ -233,10 +345,10 @@ export default function PantallaPrincipalEstudiante() {
             </View>
           </View>
 
-           {/* SECCIÓN: MIS MATERIAS
+          {/* SECCIÓN: MIS MATERIAS
            Lista de todas las materias inscritas con su información: */}
 
-              
+
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>📚 Mis Materias</Text>
@@ -266,7 +378,7 @@ export default function PantallaPrincipalEstudiante() {
 
                 <View style={styles.subjectStats}>
                   <View style={styles.statItem}>
-               
+
                     <Text style={styles.statValue}>{materia.grade.toFixed(1)}</Text>
                     <Text style={styles.statLabel}>Calificación</Text>
                   </View>
@@ -276,7 +388,7 @@ export default function PantallaPrincipalEstudiante() {
                     <Text style={styles.statLabel}>Asistencia</Text>
                   </View>
                   <View style={styles.statItem}>
-                  
+
                     <Text style={styles.statValue}>{materia.credits}</Text>
                     <Text style={styles.statLabel}>Créditos</Text>
                   </View>
@@ -286,8 +398,8 @@ export default function PantallaPrincipalEstudiante() {
           </View>
 
           {/* SECCIÓN: ANÁLISIS DE RENDIMIENTO */}
-           {/* Gráficos y análisis del desempeño académico: */}
-      
+          {/* Gráficos y análisis del desempeño académico: */}
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}> Análisis de Rendimiento</Text>
 
@@ -343,31 +455,58 @@ export default function PantallaPrincipalEstudiante() {
           </View>
         </View>
 
+        {/* SECCIÓN: RECURSOS RECIENTES */}
+        {recursos.length > 0 && (
+          <View style={styles.section}>
+            <View style={[styles.sectionHeader, { marginHorizontal: 20 }]}>
+              <Text style={styles.sectionTitle}>📚 Recursos Recientes</Text>
+
+            </View>
+
+            {recursos.map((resource) => (
+              <TouchableOpacity key={resource.id} style={styles.resourceCard} activeOpacity={0.7}>
+                <View style={styles.resourceIcon}>
+                  <Text style={styles.resourceIconText}>
+                    {resource.type === 'video' ? '🎥' : '📄'}
+                  </Text>
+                </View>
+                <View style={styles.resourceContent}>
+                  <Text style={styles.resourceTitle}>{resource.title}</Text>
+                  <Text style={styles.resourceCategory}>{resource.category || 'General'}</Text>
+                  <Text style={styles.resourceDate}>
+                    {new Date(resource.created_at).toLocaleDateString('es-ES')}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
         <View style={styles.bottomSpacing} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 
 //    ESTILOS DEL COMPONENTE
- 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
-    paddingTop: 0,
   },
   scroll: {
     flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 20,
     width: '100%',
   },
   header: {
     backgroundColor: '#fff',
     paddingVertical: 20,
+    paddingTop: 40,
     borderBottomWidth: 1,
     borderBottomColor: '#e9ecef',
     width: '100%',
@@ -395,7 +534,6 @@ const styles = StyleSheet.create({
   alertCard: {
     backgroundColor: '#fff',
     borderLeftWidth: 4,
-    borderLeftColor: '#ff6b6b',
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,
@@ -407,17 +545,15 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   alertIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#ffe0e0',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   alertIconText: {
-    fontSize: 16,
-    color: '#ff6b6b',
+    fontSize: 18,
   },
   alertContent: {
     flex: 1,
@@ -759,6 +895,62 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: '#e9ecef',
+  },
+  resourceCard: {
+    flexDirection: 'row',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    marginHorizontal: 18,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    alignItems: 'center',
+  },
+  resourceIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
+    backgroundColor: '#f8f9fa',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  resourceIconText: {
+    fontSize: 20,
+  },
+  resourceContent: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingVertical: 2,
+  },
+  resourceTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#212529',
+    marginBottom: 6,
+    lineHeight: 22,
+  },
+  resourceCategory: {
+    fontSize: 14,
+    color: '#6c757d',
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  resourceDate: {
+    fontSize: 12,
+    color: '#adb5bd',
+    fontWeight: '400',
   },
   bottomSpacing: {
     height: 40,
