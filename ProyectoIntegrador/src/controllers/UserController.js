@@ -33,7 +33,7 @@ class UserController {
   async login(email, password) {
     console.log('=== LOGIN INICIADO ===');
     console.log('Email:', email);
-    
+
     // Validaciones básicas
     if (!email || !password) {
       console.log('❌ Faltan credenciales');

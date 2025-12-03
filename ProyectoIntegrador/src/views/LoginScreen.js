@@ -83,32 +83,32 @@ export default function LoginScreen() {
 
   const loginWithDemo = async (userType = 'student') => {
     const credentials = {
-      student: { 
-        email: 'maria.garcia@universidad.edu', 
+      student: {
+        email: 'maria.garcia@universidad.edu',
         password: 'demo123',
         name: 'María García López',
         description: 'Estudiante de Ing. Sistemas con buen rendimiento académico'
       },
-      risk: { 
-        email: 'carlos.rodriguez@universidad.edu', 
+      risk: {
+        email: 'carlos.rodriguez@universidad.edu',
         password: 'demo456',
         name: 'Carlos Rodríguez',
         description: 'Estudiante con alto riesgo de deserción que necesita apoyo'
       },
-      admin: { 
-        email: 'admin@universidad.edu', 
+      admin: {
+        email: 'admin@universidad.edu',
         password: 'admin123',
         name: 'Dr. Ana Martínez',
         description: 'Administrador con acceso completo al sistema'
       },
-      teacher: { 
-        email: 'luis.hernandez@universidad.edu', 
+      teacher: {
+        email: 'luis.hernandez@universidad.edu',
         password: 'prof123',
         name: 'Prof. Luis Hernández',
         description: 'Profesor consejero especializado en apoyo estudiantil'
       },
-      excellent: { 
-        email: 'ana.delgado@universidad.edu', 
+      excellent: {
+        email: 'ana.delgado@universidad.edu',
         password: 'demo789',
         name: 'Ana Sofia Delgado',
         description: 'Estudiante destacada con excelente rendimiento académico'
@@ -116,22 +116,22 @@ export default function LoginScreen() {
     };
 
     const creds = credentials[userType] || credentials.student;
-    
+
     // Llenar los campos
     setEmail(creds.email);
     setPassword(creds.password);
     setEmailError('');
     setPasswordError('');
-    
+
     // Hacer login automáticamente
     setLoading(true);
     try {
       console.log('Demo Login: Iniciando login automático para', creds.name);
       const result = await contextLogin(creds.email, creds.password);
-      
+
       if (result && result.success) {
         Alert.alert(
-          `¡Bienvenido, ${creds.name}!`, 
+          `¡Bienvenido, ${creds.name}!`,
           creds.description,
           [{ text: 'Continuar', style: 'default' }]
         );
