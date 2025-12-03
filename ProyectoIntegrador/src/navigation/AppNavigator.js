@@ -7,9 +7,40 @@ import ResourcesScreen from '../views/ResourcesScreen';
 import AlertsScreen from '../views/AlertsScreen';
 import StudentDetailsScreen from '../views/StudentDetailsScreen';
 import ProfileScreen from '../views/ProfileScreen';
+import EditProfileScreen from '../views/EditProfileScreen';
+import ChangePasswordScreen from '../views/ChangePasswordScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+// Stack Navigator para el tab de Perfil (con navegación interna)
+const ProfileStackNavigator = () => {
+    return (
+        <Stack.Navigator>
+            <Stack.Screen
+                name="Home"
+                component={ProfileScreen}
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="EditProfile"
+                component={EditProfileScreen}
+                options={{
+                    title: 'Editar Perfil',
+                }}
+            />
+            <Stack.Screen
+                name="ChangePassword"
+                component={ChangePasswordScreen}
+                options={{
+                    title: 'Cambiar Contraseña',
+                }}
+            />
+        </Stack.Navigator>
+    );
+};
 
 // Navegador de Tab (Inicio, Recursos, Alertas, Perfil)
 const HomeTabNavigator = () => {
@@ -69,9 +100,10 @@ const HomeTabNavigator = () => {
             />
             <Tab.Screen
                 name="Perfil"
-                component={ProfileScreen}
+                component={ProfileStackNavigator}
                 options={{
                     title: 'Perfil',
+                    headerShown: false,
                 }}
             />
         </Tab.Navigator>
@@ -96,7 +128,6 @@ const AppNavigator = () => {
                     title: 'Detalles del Estudiante',
                 }}
             />
-            {/* TODO: Agregar más pantallas según sea necesario */}
         </Stack.Navigator>
     );
 };

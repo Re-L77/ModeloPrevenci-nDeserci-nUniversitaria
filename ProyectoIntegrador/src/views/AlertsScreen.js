@@ -48,62 +48,62 @@ export default function AlertsScreen() {
 
 
             {notificaciones.length === 0 ? (
-    <View style={styles.emptyContainer}>
-        <Image
-            source={require('../../assets/fondoNotis.png')} 
-            style={styles.emptyImage}
-            resizeMode="contain"
-        />
+                <View style={styles.emptyContainer}>
+                    <Image
+                        source={require('../../assets/fondoNotis.png')}
+                        style={styles.emptyImage}
+                        resizeMode="contain"
+                    />
 
-        <Text style={styles.emptyText}>No hay notificaciones</Text>
-    </View>
-) : (
-    <ScrollView style={styles.scroll} contentContainerStyle={{ paddingBottom: 30 }}>
-        {notificaciones.map((item) => (
-            <View key={item.id} style={styles.card}>
-                <View style={styles.row}>
-
-                    <View style={item.tipo === "Asistencia" ? styles.iconWarning : styles.iconAlert}>
-                        <Text style={{ fontSize: 20 }}>
-                            {item.tipo === "Asistencia" ? "⚠️" : "🚨"}
-                        </Text>
-                    </View>
-
-                    <View style={{ flex: 1 }}>
-                        <Text style={styles.cardTitle}>{item.titulo}</Text>
-                        <Text style={styles.cardDesc}>{item.desc}</Text>
-
-                        <View style={styles.tagsRow}>
-                            <Text style={styles.time}>Hace un momento</Text>
-
-                            <View style={styles.tag}>
-                                <Text style={styles.tagText}>{item.tipo}</Text>
-                            </View>
-
-                            <View style={styles.tagGray}>
-                                <Text style={styles.tagGrayText}>
-                                    {item.leida ? "Leída" : "No leída"}
-                                </Text>
-                            </View>
-                        </View>
-
-                        <View style={styles.actionsRow}>
-                            <TouchableOpacity>
-                                <Text style={styles.markRead}>✓ Marcar como leída</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity onPress={() => eliminarNotificacion(item.id)}>
-                                <Text style={styles.delete}>🗑 Eliminar</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                    </View>
-
+                    <Text style={styles.emptyText}>No hay notificaciones</Text>
                 </View>
-            </View>
-        ))}
-    </ScrollView>
-)}
+            ) : (
+                <ScrollView style={styles.scroll} contentContainerStyle={{ paddingBottom: 30 }}>
+                    {notificaciones.map((item) => (
+                        <View key={item.id} style={styles.card}>
+                            <View style={styles.row}>
+
+                                <View style={item.tipo === "Asistencia" ? styles.iconWarning : styles.iconAlert}>
+                                    <Text style={{ fontSize: 20 }}>
+                                        {item.tipo === "Asistencia" ? "⚠️" : "🚨"}
+                                    </Text>
+                                </View>
+
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.cardTitle}>{item.titulo}</Text>
+                                    <Text style={styles.cardDesc}>{item.desc}</Text>
+
+                                    <View style={styles.tagsRow}>
+                                        <Text style={styles.time}>Hace un momento</Text>
+
+                                        <View style={styles.tag}>
+                                            <Text style={styles.tagText}>{item.tipo}</Text>
+                                        </View>
+
+                                        <View style={styles.tagGray}>
+                                            <Text style={styles.tagGrayText}>
+                                                {item.leida ? "Leída" : "No leída"}
+                                            </Text>
+                                        </View>
+                                    </View>
+
+                                    <View style={styles.actionsRow}>
+                                        <TouchableOpacity>
+                                            <Text style={styles.markRead}>✓ Marcar como leída</Text>
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity onPress={() => eliminarNotificacion(item.id)}>
+                                            <Text style={styles.delete}>🗑 Eliminar</Text>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                </View>
+
+                            </View>
+                        </View>
+                    ))}
+                </ScrollView>
+            )}
 
         </View>
     );
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#F5F6FA",
         paddingHorizontal: 20,
-        paddingTop: 50,
+        paddingTop: 40,
     },
 
     fondo: {
@@ -274,21 +274,21 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        marginTop:-60,
+        marginTop: -60,
 
-        
+
     },
-    
+
     emptyImage: {
         width: 250,
         height: 250,
     },
-    
+
     emptyText: {
         marginTop: 20,
         fontSize: 18,
         color: "#555",
         fontWeight: "500",
     },
-    
+
 });
