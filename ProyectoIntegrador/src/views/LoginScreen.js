@@ -1,17 +1,10 @@
 import React, { useState, useRef } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
-  Keyboard,
-} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Keyboard, Image} from 'react-native'; 
 import { useNavigation } from '@react-navigation/native';
 import { validateEmail } from '../utils/helpers';
 import { loginUser } from '../controllers/UserController';
+
+const logoImage = require('../../assets/Logo.jpeg'); 
 
 export default function LoginScreen() {
   const navigation = useNavigation();
@@ -32,9 +25,6 @@ export default function LoginScreen() {
       valid = false;
     } else if (!validateEmail(trimmedEmail)) {
       setEmailError('Formato de correo inválido.');
-      valid = false;
-    } else if (!trimmedEmail.toLowerCase().endsWith('@universidad.edu')) {
-      setEmailError('Usa tu correo institucional (@universidad.edu).');
       valid = false;
     } else {
       setEmailError('');
@@ -99,13 +89,19 @@ export default function LoginScreen() {
   return (
     <View style={styles.page}>
       <View style={styles.card}>
+        
+        <Image 
+            source={logoImage} 
+            style={styles.logo} 
+        />
+
         <Text style={styles.title}>Bienvenido</Text>
         <Text style={styles.subtitle}>Sistema de Prevención de Deserción</Text>
 
-        <Text style={styles.label}>Correo Institucional</Text>
+        <Text style={styles.label}>Correo Electrónico</Text>
         <TextInput
           style={[styles.input, emailError ? styles.inputError : null]}
-          placeholder="estudiante@universidad.edu"
+          placeholder="nombre@ejemplo.com" 
           value={email}
           onChangeText={(t) => {
             setEmail(t);
@@ -179,6 +175,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    alignSelf: 'center',
+    marginBottom: 20,
+    resizeMode: 'contain',
   },
   title: {
     fontSize: 26,
