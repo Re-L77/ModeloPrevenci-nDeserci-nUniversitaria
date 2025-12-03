@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import {View,Text,ScrollView,TouchableOpacity,StyleSheet,StatusBar,Dimensions,} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, StatusBar, Dimensions, SafeAreaView, } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
 
 //   Descripción: Pantalla principal del estudiante que muestra su desempeño académico
- 
+
 export default function PantallaPrincipalEstudiante() {
   // ESTADO
   //  Datos del estudiante: nombre, programa, promedio, asistencia, etc.
-   
+
   const [datosEstudiante, setDatosEstudiante] = useState({
     name: 'María',
     program: 'Ingeniería en Sistemas',
@@ -23,10 +23,10 @@ export default function PantallaPrincipalEstudiante() {
     creditosTotales: 18,
   });
 
-  
+
   //   Alertas del estudiante
   //   Tipos: low_attendance ES PARA ASISTENCIA BAJA, at_risk CALIF EN RIESGOOO
-  
+
   const [alertas, setAlertas] = useState([
     {
       id: 1,
@@ -108,7 +108,7 @@ export default function PantallaPrincipalEstudiante() {
 
   //  Historial de promedio por semestre
   //   Se usa para generar gráficos de evolución académica
-  
+
   const [historialPromedio, setHistorialPromedio] = useState([
     { semester: 'S1', gpa: 8.5 },
     { semester: 'S2', gpa: 8.8 },
@@ -119,10 +119,10 @@ export default function PantallaPrincipalEstudiante() {
 
 
   // CÁLCULOS Y FUNCIONES AUXILIARES
-    // Calcula la distribución de estados de las materias
-    // Retorna porcentajes de: Excelente, Bueno, En Riesgo usando la grafica de pastel
+  // Calcula la distribución de estados de las materias
+  // Retorna porcentajes de: Excelente, Bueno, En Riesgo usando la grafica de pastel
 
-   
+
   const calcularDistribucionEstados = () => {
     const total = materias.length;
     const excelente = materias.filter(m => m.status === 'Excelente').length;
@@ -139,16 +139,16 @@ export default function PantallaPrincipalEstudiante() {
   const distEstados = calcularDistribucionEstados();
 
 
-    // Convierte un promedio a altura de barra para el gráfico
+  // Convierte un promedio a altura de barra para el gráfico
 
   const obtenerAlturaBarra = (promedio) => {
     return Math.round((promedio / 10) * 100);
   };
 
-  
+
   //  Elimina una alerta por su ID
   //   Se ejecuta cuando el usuario hace clic en la X de la alerta
-  
+
   const eliminarAlerta = (id) => {
     setAlertas(alertas.filter(alerta => alerta.id !== id));
   };
@@ -156,9 +156,9 @@ export default function PantallaPrincipalEstudiante() {
 
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
-      
+
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Encabezado con saludo personalizado y programa del estudiante */}
         <View style={styles.header}>
@@ -170,10 +170,10 @@ export default function PantallaPrincipalEstudiante() {
 
         {/* ===== CONTENEDOR PRINCIPAL ===== */}
         <View style={styles.contentContainer}>
-          
+
           {/* SECCIÓN: ALERTAS */}
           {/* Muestra alertas sobre asistencia baja o calificaciones en riesgo */}
-   
+
           {alertas.filter(a => a.visible).length > 0 && (
             <View style={styles.alertsContainer}>
               {alertas.filter(a => a.visible).map((alerta) => (
@@ -194,7 +194,7 @@ export default function PantallaPrincipalEstudiante() {
           )}
 
           {/* SECCIÓN: ESTADÍSTICAS */}
-              {/* - Promedio General
+          {/* - Promedio General
               - Asistencia
               - Materias en Riesgo
               - Créditos Totales  */}
@@ -233,10 +233,10 @@ export default function PantallaPrincipalEstudiante() {
             </View>
           </View>
 
-           {/* SECCIÓN: MIS MATERIAS
+          {/* SECCIÓN: MIS MATERIAS
            Lista de todas las materias inscritas con su información: */}
 
-              
+
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>📚 Mis Materias</Text>
@@ -266,7 +266,7 @@ export default function PantallaPrincipalEstudiante() {
 
                 <View style={styles.subjectStats}>
                   <View style={styles.statItem}>
-               
+
                     <Text style={styles.statValue}>{materia.grade.toFixed(1)}</Text>
                     <Text style={styles.statLabel}>Calificación</Text>
                   </View>
@@ -276,7 +276,7 @@ export default function PantallaPrincipalEstudiante() {
                     <Text style={styles.statLabel}>Asistencia</Text>
                   </View>
                   <View style={styles.statItem}>
-                  
+
                     <Text style={styles.statValue}>{materia.credits}</Text>
                     <Text style={styles.statLabel}>Créditos</Text>
                   </View>
@@ -286,8 +286,8 @@ export default function PantallaPrincipalEstudiante() {
           </View>
 
           {/* SECCIÓN: ANÁLISIS DE RENDIMIENTO */}
-           {/* Gráficos y análisis del desempeño académico: */}
-      
+          {/* Gráficos y análisis del desempeño académico: */}
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}> Análisis de Rendimiento</Text>
 
@@ -345,18 +345,17 @@ export default function PantallaPrincipalEstudiante() {
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 
 //    ESTILOS DEL COMPONENTE
- 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
-    paddingTop: 0,
   },
   scroll: {
     flex: 1,
@@ -368,6 +367,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#fff',
     paddingVertical: 20,
+    paddingTop: 40,
     borderBottomWidth: 1,
     borderBottomColor: '#e9ecef',
     width: '100%',
