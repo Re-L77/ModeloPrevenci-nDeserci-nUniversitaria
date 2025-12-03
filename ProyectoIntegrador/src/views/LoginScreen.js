@@ -1,9 +1,13 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Keyboard, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  View, Text, TextInput, TouchableOpacity, StyleSheet, Alert,
+  ActivityIndicator, Keyboard, Image, ScrollView, KeyboardAvoidingView, Platform
+} from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { validateEmail } from '../utils/helpers';
 import userController from '../controllers/UserController';
 import { useAuth } from '../navigation/RootNavigator';
+import User from '../models/User';
 
 const logoImage = require('../../assets/LogoPI.png');
 
@@ -16,8 +20,41 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('demo123');
   const [loading, setLoading] = useState(false);
 
+  const [demoNames, setDemoNames] = useState({
+    carlos: 'Carlos Rodríguez',
+    maria: 'María García',
+    ana: 'Ana Delgado',
+    admin: 'Dr. Ana Martínez',
+    luis: 'Prof. Luis Hernández'
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadRealNames = async () => {
+        try {
+          const uMaria = await User.findByEmail('maria.garcia@universidad.edu');
+          const uCarlos = await User.findByEmail('carlos.rodriguez@universidad.edu');
+          const uAna = await User.findByEmail('ana.delgado@universidad.edu');
+          const uAdmin = await User.findByEmail('admin@universidad.edu');
+          const uLuis = await User.findByEmail('luis.hernandez@universidad.edu');
+
+          setDemoNames({
+            maria: uMaria ? uMaria.name : 'María García',
+            carlos: uCarlos ? uCarlos.name : 'Carlos Rodríguez',
+            ana: uAna ? uAna.name : 'Ana Delgado',
+            admin: uAdmin ? uAdmin.name : 'Dr. Ana Martínez',
+            luis: uLuis ? uLuis.name : 'Prof. Luis Hernández',
+          });
+        } catch (error) {
+          console.log('Error cargando nombres demo:', error);
+        }
+      };
+
+      loadRealNames();
+    }, [])
+  );
+
   const handleLogin = async () => {
-    console.log('=== HANDLE LOGIN INICIADO ===');
     Keyboard.dismiss();
 
     if (!email || !password) {
@@ -32,7 +69,6 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      console.log('LoginScreen: Intentando login con:', email);
       const result = await userController.login(email, password);
 
       if (result.success && result.user) {
@@ -51,7 +87,6 @@ export default function LoginScreen() {
   const handleDemoLogin = useCallback(async (demoUser) => {
     setLoading(true);
     try {
-      console.log('LoginScreen: Login de demostración:', demoUser.email);
       const result = await userController.login(demoUser.email, demoUser.password);
 
       if (result.success && result.user) {
@@ -66,11 +101,6 @@ export default function LoginScreen() {
     }
     setLoading(false);
   }, [setUser]);
-
-  const useDemoCredentials = () => {
-    setEmail('maria.garcia@universidad.edu');
-    setPassword('demo123');
-  };
 
   return (
     <KeyboardAvoidingView
@@ -108,7 +138,6 @@ export default function LoginScreen() {
               secureTextEntry
             />
 
-            {/* --- BOTÓN QUE ACTIVA LA NAVEGACIÓN EN PILA --- */}
             <TouchableOpacity
               onPress={() => navigation.navigate('ForgotPassword')}
               style={styles.forgotContainer}
@@ -124,17 +153,16 @@ export default function LoginScreen() {
               {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Iniciar Sesión</Text>}
             </TouchableOpacity>
 
-            {/* SECCIÓN DE USUARIOS DE DEMOSTRACIÓN */}
             <View style={styles.demoSection}>
               <Text style={styles.demoSectionTitle}>🎯 Usuarios de Demostración</Text>
-              <Text style={styles.demoSectionSubtitle}>Haz clic para probar diferentes perfiles</Text>
+              <Text style={styles.demoSectionSubtitle}>Datos actualizados en tiempo real</Text>
 
               <TouchableOpacity
                 style={[styles.demoButton, styles.demoButtonRisk]}
                 onPress={() => handleDemoLogin({ email: 'carlos.rodriguez@universidad.edu', password: 'demo456' })}
                 disabled={loading}
               >
-                <Text style={styles.demoButtonText}>👨‍🎓 Carlos Rodríguez</Text>
+                <Text style={styles.demoButtonText}>👨‍🎓 {demoNames.carlos}</Text>
                 <Text style={styles.demoButtonSubtext}>Estudiante - Riesgo Alto</Text>
               </TouchableOpacity>
 
@@ -143,7 +171,7 @@ export default function LoginScreen() {
                 onPress={() => handleDemoLogin({ email: 'maria.garcia@universidad.edu', password: 'demo123' })}
                 disabled={loading}
               >
-                <Text style={styles.demoButtonText}>👩‍🎓 María García</Text>
+                <Text style={styles.demoButtonText}>👩‍🎓 {demoNames.maria}</Text>
                 <Text style={styles.demoButtonSubtext}>Estudiante - Rendimiento Bueno</Text>
               </TouchableOpacity>
 
@@ -152,7 +180,7 @@ export default function LoginScreen() {
                 onPress={() => handleDemoLogin({ email: 'ana.delgado@universidad.edu', password: 'demo789' })}
                 disabled={loading}
               >
-                <Text style={styles.demoButtonText}>👩‍🎓 Ana Delgado</Text>
+                <Text style={styles.demoButtonText}>👩‍🎓 {demoNames.ana}</Text>
                 <Text style={styles.demoButtonSubtext}>Estudiante - Rendimiento Excelente</Text>
               </TouchableOpacity>
 
@@ -161,7 +189,7 @@ export default function LoginScreen() {
                 onPress={() => handleDemoLogin({ email: 'admin@universidad.edu', password: 'admin123' })}
                 disabled={loading}
               >
-                <Text style={styles.demoButtonText}>👩‍💼 Dr. Ana Martínez</Text>
+                <Text style={styles.demoButtonText}>👩‍💼 {demoNames.admin}</Text>
                 <Text style={styles.demoButtonSubtext}>Administrador</Text>
               </TouchableOpacity>
 
@@ -170,7 +198,7 @@ export default function LoginScreen() {
                 onPress={() => handleDemoLogin({ email: 'luis.hernandez@universidad.edu', password: 'prof123' })}
                 disabled={loading}
               >
-                <Text style={styles.demoButtonText}>👨‍🏫 Prof. Luis Hernández</Text>
+                <Text style={styles.demoButtonText}>👨‍🏫 {demoNames.luis}</Text>
                 <Text style={styles.demoButtonSubtext}>Profesor/Consejero</Text>
               </TouchableOpacity>
             </View>
@@ -243,14 +271,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     backgroundColor: '#FAFAFA',
   },
-  inputError: {
-    borderColor: '#E33',
-  },
-  errorText: {
-    color: '#E33',
-    marginBottom: 8,
-    fontSize: 13,
-  },
   button: {
     backgroundColor: '#007AFF',
     paddingVertical: 14,
@@ -266,8 +286,28 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
-  demoSection: {
+  // ESTILOS NUEVOS PARA REGISTRO
+  registerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     marginTop: 20,
+    marginBottom: 10,
+  },
+  registerText: {
+    color: '#666',
+    fontSize: 14,
+  },
+  registerLink: {
+    color: '#007AFF',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  // ESTILOS DE DEMO
+  demoSection: {
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#EEE',
+    paddingTop: 20,
   },
   demoSectionTitle: {
     fontSize: 16,
@@ -314,12 +354,6 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     marginTop: 2,
-  },
-  demoLink: {
-    color: '#007AFF',
-    textAlign: 'center',
-    marginTop: 12,
-    fontSize: 14,
   },
   forgotContainer: {
     alignItems: 'flex-end',

@@ -77,7 +77,7 @@ class User {
         }
     }
 
-    // Actualizar usuario
+    // Actualizar usuario (Método de instancia)
     async update(updateData) {
         try {
             const { name, email, profile_picture, phone } = updateData;
@@ -100,7 +100,7 @@ class User {
         }
     }
 
-    // Actualizar contraseña
+    // Actualizar contraseña (Método de instancia)
     async updatePassword(newPassword) {
         try {
             await executeQuery(
@@ -115,12 +115,15 @@ class User {
         }
     }
 
-    // Eliminar usuario
-    async delete() {
+    // --- CORRECCIÓN AQUÍ: Método Estático para Eliminar ---
+    static async delete(id) {
         try {
+            // También deberíamos borrar los datos de estudiante asociados si existen
+            // await executeQuery('DELETE FROM students WHERE user_id = ?', [id]); 
+            
             await executeQuery(
                 'DELETE FROM users WHERE id = ?',
-                [this.id]
+                [id]
             );
             return true;
         } catch (error) {
