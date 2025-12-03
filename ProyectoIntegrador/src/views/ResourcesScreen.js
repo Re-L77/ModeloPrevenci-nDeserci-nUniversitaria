@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -8,13 +8,104 @@ import {
     FlatList,
     StyleSheet,
     SafeAreaView,
+    ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useAuth } from '../navigation/RootNavigator';
+import resourceController from '../controllers/ResourceController';
 
 const ResourcesScreen = () => {
-    const [selectedFilter, setSelectedFilter] = useState('Videos');
+    const { currentUser } = useAuth();
+    const [selectedFilter, setSelectedFilter] = useState('Todos');
+    const [resourcesData, setResourcesData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
 
-    const [resourcesData] = useState([
+    // Cargar recursos desde la base de datos
+    useEffect(() => {
+        const loadResources = async () => {
+            try {
+                console.log('ResourcesScreen: Cargando recursos...');
+                const result = await resourceController.getAllResources();
+
+                if (result.success) {
+                    console.log('ResourcesScreen: Recursos cargados:', result.data.length);
+                    // Mapear los datos al formato esperado por la UI
+                    const resourcesUI = result.data.map(resource => ({
+                        id: resource.id.toString(),
+                        type: mapResourceType(resource.type),
+                        title: resource.title,
+                        subject: resource.category || 'General',
+                        date: formatDate(resource.created_at),
+                        fileSize: '2.5 MB', // Placeholder
+                        tags: [resource.type, mapResourceType(resource.type)],
+                        icon: getResourceIcon(resource.type),
+                        iconBg: getResourceIconBg(resource.type),
+                        iconColor: getResourceIconColor(resource.type),
+                        url: resource.url,
+                        description: resource.description
+                    }));
+                    setResourcesData(resourcesUI);
+                } else {
+                    console.warn('ResourcesScreen: Error cargando recursos:', result.message);
+                    // Usar datos de fallback si la BD falla
+                    setResourcesData(getFallbackData());
+                }
+            } catch (error) {
+                console.error('ResourcesScreen: Error cargando recursos:', error);
+                // Usar datos de fallback en caso de error
+                setResourcesData(getFallbackData());
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadResources();
+    }, []);
+
+    // Funciones helper
+    const mapResourceType = (type) => {
+        const typeMap = {
+            'video': 'Video Tutorial',
+            'document': 'Material de Estudio',
+            'tutorial': 'Video Tutorial',
+            'book': 'Material de Estudio'
+        };
+        return typeMap[type] || 'Material de Estudio';
+    };
+
+    const getResourceIcon = (type) => {
+        const iconMap = {
+            'video': 'videocam-outline',
+            'tutorial': 'videocam-outline'
+        };
+        return iconMap[type] || 'document-outline';
+    };
+
+    const getResourceIconBg = (type) => {
+        const bgMap = {
+            'video': '#DBEAFE',
+            'tutorial': '#DBEAFE'
+        };
+        return bgMap[type] || '#FEE2E2';
+    };
+
+    const getResourceIconColor = (type) => {
+        const colorMap = {
+            'video': '#3B82F6',
+            'tutorial': '#3B82F6'
+        };
+        return colorMap[type] || '#F87171';
+    };
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun',
+            'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+        return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    };
+
+    const getFallbackData = () => [
         {
             id: '1',
             type: 'Material de Estudio',
@@ -75,7 +166,7 @@ const ResourcesScreen = () => {
             iconBg: '#FEE2E2',
             iconColor: '#F87171',
         },
-    ]);
+    ];
 
     const categoryMap = {
         'Todos': null,
@@ -84,14 +175,26 @@ const ResourcesScreen = () => {
     };
 
     const filterResources = () => {
-        const actualFilter = categoryMap[selectedFilter];
-        if (actualFilter === null) {
-            return resourcesData;
-        }
-        return resourcesData.filter((resource) => resource.type === actualFilter);
-    };
+        let filtered = resourcesData;
 
-    const renderResourceCard = ({ item }) => (
+        // Filtrar por categoría
+        const actualFilter = categoryMap[selectedFilter];
+        if (actualFilter !== null) {
+            filtered = filtered.filter((resource) => resource.type === actualFilter);
+        }
+
+        // Filtrar por búsqueda
+        if (searchQuery.trim() !== '') {
+            const query = searchQuery.toLowerCase();
+            filtered = filtered.filter((resource) =>
+                resource.title.toLowerCase().includes(query) ||
+                resource.subject.toLowerCase().includes(query) ||
+                resource.tags.some(tag => tag.toLowerCase().includes(query))
+            );
+        }
+
+        return filtered;
+    }; const renderResourceCard = ({ item }) => (
         <View style={styles.card}>
             <View style={styles.cardContent}>
                 <View style={[styles.iconContainer, { backgroundColor: item.iconBg }]}>
@@ -156,6 +259,8 @@ const ResourcesScreen = () => {
                     style={styles.searchInput}
                     placeholder="Buscar recursos..."
                     placeholderTextColor="#9CA3AF"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
                 />
             </View>
 
@@ -182,14 +287,21 @@ const ResourcesScreen = () => {
                 ))}
             </View>
 
-            <FlatList
-                data={filterResources()}
-                renderItem={renderResourceCard}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.listContent}
-                showsVerticalScrollIndicator={false}
-                scrollEnabled={true}
-            />
+            {loading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#007AFF" />
+                    <Text style={styles.loadingText}>Cargando recursos...</Text>
+                </View>
+            ) : (
+                <FlatList
+                    data={filterResources()}
+                    renderItem={renderResourceCard}
+                    keyExtractor={(item) => item.id}
+                    contentContainerStyle={styles.listContent}
+                    showsVerticalScrollIndicator={false}
+                    scrollEnabled={true}
+                />
+            )}
         </SafeAreaView>
     );
 };
@@ -367,6 +479,18 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 13,
         fontWeight: '600',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 50,
+    },
+    loadingText: {
+        marginTop: 16,
+        fontSize: 16,
+        color: '#6B7280',
+        textAlign: 'center',
     },
 });
 

@@ -15,19 +15,26 @@ export default function App() {
 
   const initializeApp = async () => {
     try {
-      console.log('Inicializando aplicación...');
+      console.log('🚀 Inicializando aplicación...');
 
-      // Inicializar base de datos
+      // 1. Inicializar base de datos
       await initializeDatabase();
-      console.log('Base de datos inicializada');
+      console.log('✅ Base de datos inicializada');
 
-      // Limpiar sesión para forzar login (temporal para debugging)
-      await userController.logout();
-      console.log('Sesión limpiada');
+      // 2. Intentar restaurar sesión previa
+      const sessionRestored = await userController.initializeSession();
+      if (sessionRestored) {
+        console.log('✅ Sesión previa restaurada');
+      } else {
+        console.log('ℹ️ No hay sesión previa - usuario debe hacer login');
+      }
 
+      // 3. Aplicación lista
+      console.log('🎯 Inicialización completada');
       setIsLoading(false);
+
     } catch (error) {
-      console.error('Error inicializando aplicación:', error);
+      console.error('❌ Error inicializando aplicación:', error);
       setInitError(error.message);
       setIsLoading(false);
     }
@@ -36,8 +43,15 @@ export default function App() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Iniciando aplicación...</Text>
+        <View style={styles.logoContainer}>
+          <View style={styles.logoPlaceholder}>
+            <Text style={styles.logoText}>🎓</Text>
+          </View>
+        </View>
+        <Text style={styles.appTitle}>Sistema de Prevención</Text>
+        <Text style={styles.appSubtitle}>de Deserción Universitaria</Text>
+        <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
+        <Text style={styles.loadingText}>Inicializando aplicación...</Text>
         <StatusBar style="auto" />
       </View>
     );
@@ -66,12 +80,49 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F0F2F5',
+    paddingHorizontal: 20,
+  },
+  logoContainer: {
+    marginBottom: 30,
+  },
+  logoPlaceholder: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  logoText: {
+    fontSize: 48,
+    color: '#FFFFFF',
+  },
+  appTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  appSubtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 40,
+  },
+  loader: {
+    marginBottom: 20,
   },
   loadingText: {
-    marginTop: 20,
     fontSize: 16,
-    color: '#666',
+    color: '#6B7280',
+    textAlign: 'center',
   },
   errorContainer: {
     flex: 1,

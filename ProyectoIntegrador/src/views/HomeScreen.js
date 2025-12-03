@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, StatusBar, Dimensions, SafeAreaView, } from 'react-native';
+import { useAuth } from '../navigation/RootNavigator';
+import alertController from '../controllers/AlertController';
+import resourceController from '../controllers/ResourceController';
+import studentController from '../controllers/StudentController';
 
 const { width } = Dimensions.get('window');
 
@@ -7,115 +11,162 @@ const { width } = Dimensions.get('window');
 //   Descripción: Pantalla principal del estudiante que muestra su desempeño académico
 
 export default function PantallaPrincipalEstudiante() {
-  // ESTADO
-  //  Datos del estudiante: nombre, programa, promedio, asistencia, etc.
+  const { currentUser } = useAuth();
+  const [alertas, setAlertas] = useState([]);
+  const [materias, setMaterias] = useState([]);
+  const [recursos, setRecursos] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [datosEstudiante, setDatosEstudiante] = useState({
-    name: 'María',
-    program: 'Ingeniería en Sistemas',
-    semester: 'Semestre 5',
-    gpa: 9.06,
-    maxGpa: 10.0,
+  // Datos del estudiante calculados dinámicamente
+  const datosEstudiante = {
+    name: currentUser?.name?.split(' ')[0] || 'Usuario',
+    program: currentUser?.student?.career || 'Programa no definido',
+    semester: `Semestre ${currentUser?.student?.semester || 'N/A'}`,
+    gpa: currentUser?.student?.gpa || 0.0,
+    maxGpa: 5.0,
     gpaChange: 0.15,
-    attendance: 89.6,
+    attendance: calculateAttendance(currentUser?.student),
     lastAttendanceUpdate: 80,
-    materiasEnRiesgo: 1,
-    creditosTotales: 18,
-  });
+    materiasEnRiesgo: materias.filter(m => m.status === 'En Riesgo').length,
+    creditosTotales: materias.reduce((sum, m) => sum + m.credits, 0),
+  };
+
+  // Calcular asistencia basada en las faltas del estudiante
+  function calculateAttendance(student) {
+    if (!student) return 85.0;
+    const absences = student.absences || 0;
+    return Math.max(60, 100 - (absences * 1.5));
+  }
+
+  // Cargar todos los datos desde la base de datos
+  useEffect(() => {
+    const loadAllData = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        console.log('HomeScreen: Cargando datos para usuario:', currentUser.name);
+
+        // Cargar alertas si es estudiante
+        if (currentUser?.student?.id) {
+          console.log('HomeScreen: Cargando alertas para estudiante ID:', currentUser.student.id);
+          const alertResult = await alertController.getAlertsByStudent(currentUser.student.id);
+
+          if (alertResult.success) {
+            const alertasUI = alertResult.data.map(alert => ({
+              id: alert.id,
+              type: alert.type,
+              title: alert.title,
+              message: alert.message,
+              visible: alert.status === 'active',
+              severity: alert.severity
+            }));
+            setAlertas(alertasUI);
+          }
+
+          // Generar materias simuladas basadas en datos reales del estudiante
+          const materiasSimuladas = generateStudentSubjects(currentUser.student);
+          setMaterias(materiasSimuladas);
+        }
+
+        // Cargar recursos recientes
+        const resourceResult = await resourceController.getAllResources();
+        if (resourceResult.success) {
+          // Tomar solo los primeros 3 recursos
+          setRecursos(resourceResult.data.slice(0, 3));
+        }
+
+      } catch (error) {
+        console.error('HomeScreen: Error cargando datos:', error);
+        setAlertas([]);
+        setMaterias([]);
+        setRecursos([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAllData();
+  }, [currentUser]);
+
+  // Generar materias simuladas basadas en el estudiante real
+  const generateStudentSubjects = (student) => {
+    const baseSubjects = [
+      { code: 'BD202', name: 'Base de Datos II', professor: 'Dr. Carlos Ruiz', credits: 4 },
+      { code: 'DW301', name: 'Desarrollo Web', professor: 'Ing. Laura Méndez', credits: 4 },
+      { code: 'MD205', name: 'Matemáticas Discretas', professor: 'Dr. Roberto Silva', credits: 3 },
+      { code: 'AA504', name: 'Algoritmos Avanzados', professor: 'Dra. Ana Torres', credits: 4 },
+      { code: 'RC401', name: 'Redes de Computadoras', professor: 'Ing. Miguel López', credits: 4 }
+    ];
+
+    return baseSubjects.map((subject, index) => {
+      // Generar notas basadas en el GPA del estudiante
+      const baseGrade = student.gpa || 3.5;
+      const variation = (Math.random() - 0.5) * 1.5;
+      const grade = Math.max(1.0, Math.min(5.0, baseGrade + variation));
+
+      // Calcular asistencia basada en las faltas
+      const absences = student.absences || 0;
+      const attendance = Math.max(60, 100 - (absences * 2) - (Math.random() * 10));
+
+      // Determinar estado basado en la nota
+      let status, statusColor;
+      if (grade >= 4.0) {
+        status = 'Excelente';
+        statusColor = '#10b981';
+      } else if (grade >= 3.0) {
+        status = 'Bueno';
+        statusColor = '#3b82f6';
+      } else {
+        status = 'En Riesgo';
+        statusColor = '#ef4444';
+      }
+
+      return {
+        id: index + 1,
+        code: subject.code,
+        name: subject.name,
+        professor: subject.professor,
+        grade: parseFloat(grade.toFixed(1)),
+        attendance: Math.round(attendance),
+        credits: subject.credits,
+        status,
+        statusColor
+      };
+    });
+  };
 
 
-  //   Alertas del estudiante
-  //   Tipos: low_attendance ES PARA ASISTENCIA BAJA, at_risk CALIF EN RIESGOOO
-
-  const [alertas, setAlertas] = useState([
-    {
-      id: 1,
-      type: 'low_attendance',
-      title: 'Asistencia Baja',
-      message: 'Tu asistencia en Matemáticas Discretas es del 78%. Se requiere mínimo 80%.',
-      visible: true,
-    },
-    {
-      id: 2,
-      type: 'at_risk',
-      title: 'Calificación en Riesgo',
-      message: 'Tu promedio de 7.2 en Matemáticas Discretas está por debajo del mínimo recomendado.',
-      visible: true,
-    },
-  ]);
 
 
-  //   Materias inscritas del estudiante
-  //  contiene: código, nombre, profesor, calificación, asistencia, créditos, estado
 
-  const [materias, setMaterias] = useState([
-    {
-      id: 1,
-      code: 'BD202',
-      name: 'Base de Datos II',
-      professor: 'Dr. Carlos Ruiz',
-      grade: 9.8,
-      attendance: 95,
-      credits: 4,
-      status: 'Excelente',
-      statusColor: '#10b981',
-    },
-    {
-      id: 2,
-      code: 'DW301',
-      name: 'Desarrollo Web',
-      professor: 'Ing. Laura Méndez',
-      grade: 9.5,
-      attendance: 92,
-      credits: 4,
-      status: 'Excelente',
-      statusColor: '#10b981',
-    },
-    {
-      id: 3,
-      code: 'MD205',
-      name: 'Matemáticas Discretas',
-      professor: 'Dr. Roberto Silva',
-      grade: 7.2,
-      attendance: 78,
-      credits: 3,
-      status: 'En Riesgo',
-      statusColor: '#ef4444',
-    },
-    {
-      id: 4,
-      code: 'AA504',
-      name: 'Algoritmos Avanzados',
-      professor: 'Dra. Ana Torres',
-      grade: 9.7,
-      attendance: 98,
-      credits: 4,
-      status: 'Excelente',
-      statusColor: '#10b981',
-    },
-    {
-      id: 5,
-      code: 'RC401',
-      name: 'Redes de Computadoras',
-      professor: 'Ing. Miguel López',
-      grade: 8.9,
-      attendance: 88,
-      credits: 4,
-      status: 'Bueno',
-      statusColor: '#3b82f6',
-    },
-  ]);
 
-  //  Historial de promedio por semestre
-  //   Se usa para generar gráficos de evolución académica
 
-  const [historialPromedio, setHistorialPromedio] = useState([
-    { semester: 'S1', gpa: 8.5 },
-    { semester: 'S2', gpa: 8.8 },
-    { semester: 'S3', gpa: 8.9 },
-    { semester: 'S4', gpa: 8.91 },
-    { semester: 'S5', gpa: 9.06 },
-  ]);
+  // Generar historial de promedio dinámico
+  const generateGradeHistory = (currentSemester, currentGpa) => {
+    const semester = parseInt(currentSemester) || 5;
+    const gpa = parseFloat(currentGpa) || 3.5;
+    const history = [];
+
+    // Generar historial progresivo hacia el GPA actual
+    for (let i = Math.max(1, semester - 4); i <= semester; i++) {
+      const progress = (i - Math.max(1, semester - 4)) / Math.max(1, 4);
+      const historicalGpa = Math.max(2.0, gpa - (1 - progress) * 1.0 + (Math.random() - 0.5) * 0.3);
+      history.push({
+        semester: `S${i}`,
+        gpa: parseFloat(historicalGpa.toFixed(2))
+      });
+    }
+
+    return history;
+  };
+
+  const historialPromedio = generateGradeHistory(
+    currentUser?.student?.semester,
+    currentUser?.student?.gpa
+  );
 
 
   // CÁLCULOS Y FUNCIONES AUXILIARES
@@ -342,6 +393,35 @@ export default function PantallaPrincipalEstudiante() {
             </View>
           </View>
         </View>
+
+        {/* SECCIÓN: RECURSOS RECIENTES */}
+        {recursos.length > 0 && (
+          <View style={styles.section}>
+            <View style={[styles.sectionHeader, { marginHorizontal: 20 }]}>
+              <Text style={styles.sectionTitle}>📚 Recursos Recientes</Text>
+              <TouchableOpacity>
+                <Text style={styles.linkText}>Ver todos →</Text>
+              </TouchableOpacity>
+            </View>
+
+            {recursos.map((resource) => (
+              <TouchableOpacity key={resource.id} style={styles.resourceCard} activeOpacity={0.7}>
+                <View style={styles.resourceIcon}>
+                  <Text style={styles.resourceIconText}>
+                    {resource.type === 'video' ? '🎥' : '📄'}
+                  </Text>
+                </View>
+                <View style={styles.resourceContent}>
+                  <Text style={styles.resourceTitle}>{resource.title}</Text>
+                  <Text style={styles.resourceCategory}>{resource.category || 'General'}</Text>
+                  <Text style={styles.resourceDate}>
+                    {new Date(resource.created_at).toLocaleDateString('es-ES')}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
@@ -759,6 +839,62 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: '#e9ecef',
+  },
+  resourceCard: {
+    flexDirection: 'row',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    marginHorizontal: 18,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    alignItems: 'center',
+  },
+  resourceIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
+    backgroundColor: '#f8f9fa',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  resourceIconText: {
+    fontSize: 20,
+  },
+  resourceContent: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingVertical: 2,
+  },
+  resourceTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#212529',
+    marginBottom: 6,
+    lineHeight: 22,
+  },
+  resourceCategory: {
+    fontSize: 14,
+    color: '#6c757d',
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  resourceDate: {
+    fontSize: 12,
+    color: '#adb5bd',
+    fontWeight: '400',
   },
   bottomSpacing: {
     height: 40,

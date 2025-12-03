@@ -8,12 +8,23 @@ export const useAuthLogic = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        checkAuthStatus();
+        // Inicialización inicial
+        const initialize = async () => {
+            await checkAuthStatus();
 
-        // Verificar el estado menos frecuentemente para evitar conflictos
-        const interval = setInterval(checkAuthStatus, 3000);
+            // Verificar periódicamente el estado
+            const interval = setInterval(checkAuthStatus, 3000);
 
-        return () => clearInterval(interval);
+            return () => clearInterval(interval);
+        };
+
+        const cleanup = initialize();
+
+        return () => {
+            if (cleanup && typeof cleanup === 'function') {
+                cleanup();
+            }
+        };
     }, []);
 
     const checkAuthStatus = async () => {

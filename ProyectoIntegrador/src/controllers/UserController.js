@@ -14,72 +14,96 @@ class UserController {
   // Inicializar sesión desde AsyncStorage
   async initializeSession() {
     try {
+      console.log('UserController: Verificando sesión guardada...');
+
       const token = await AsyncStorage.getItem('authToken');
       const userData = await AsyncStorage.getItem('currentUser');
 
       if (token && userData) {
-        this.authToken = token;
-        this.currentUser = JSON.parse(userData);
-        return true;
+        try {
+          this.authToken = token;
+          this.currentUser = JSON.parse(userData);
+
+          console.log('UserController: Sesión restaurada para:', this.currentUser.name);
+          return true;
+        } catch (parseError) {
+          console.error('UserController: Error parseando datos de usuario:', parseError);
+          // Limpiar datos corruptos
+          await this.logout();
+          return false;
+        }
       }
+
+      console.log('UserController: No hay sesión previa');
       return false;
     } catch (error) {
-      console.error('Error initializing session:', error);
+      console.error('UserController: Error inicializando sesión:', error);
       return false;
     }
   }
 
-  // Autenticar usuario - Versión simplificada
+  // Autenticar usuario con base de datos
   async login(email, password) {
-    console.log('=== LOGIN INICIADO ===');
+    console.log('=== LOGIN CON BASE DE DATOS ===');
     console.log('Email:', email);
 
-    // Validaciones básicas
-    if (!email || !password) {
-      console.log('❌ Faltan credenciales');
-      return { success: false, message: 'Email y contraseña requeridos' };
-    }
-
-    // Por ahora, validar con datos hardcodeados para testing
-    const validUsers = {
-      'maria.garcia@universidad.edu': { password: 'demo123', name: 'María García López', role: 'student' },
-      'carlos.rodriguez@universidad.edu': { password: 'demo456', name: 'Carlos Rodríguez', role: 'student' },
-      'admin@universidad.edu': { password: 'admin123', name: 'Dr. Ana Martínez', role: 'admin' },
-      'luis.hernandez@universidad.edu': { password: 'prof123', name: 'Prof. Luis Hernández', role: 'teacher' },
-      'ana.delgado@universidad.edu': { password: 'demo789', name: 'Ana Sofia Delgado', role: 'student' }
-    };
-
-    const userEmail = email.toLowerCase();
-    const validUser = validUsers[userEmail];
-
-    if (!validUser || validUser.password !== password) {
-      console.log('❌ Credenciales inválidas');
-      return { success: false, message: 'Credenciales incorrectas' };
-    }
-
-    // Simular usuario autenticado
-    this.authToken = `token-${Date.now()}`;
-    this.currentUser = {
-      id: Math.floor(Math.random() * 1000),
-      name: validUser.name,
-      email: userEmail,
-      role: validUser.role
-    };
-
-    // Guardar en AsyncStorage
     try {
-      await AsyncStorage.setItem('authToken', this.authToken);
-      await AsyncStorage.setItem('currentUser', JSON.stringify(this.currentUser));
-    } catch (error) {
-      console.log('⚠️ Error guardando sesión:', error);
-    }
+      // Validaciones básicas
+      if (!email || !password) {
+        console.log('❌ Faltan credenciales');
+        return { success: false, message: 'Email y contraseña requeridos' };
+      }
 
-    console.log('✅ LOGIN EXITOSO:', this.currentUser.name);
-    return {
-      success: true,
-      token: this.authToken,
-      user: this.currentUser
-    };
+      console.log('🔍 Buscando usuario en base de datos...');
+      const user = await User.findByEmail(email.toLowerCase());
+
+      if (!user) {
+        console.log('❌ Usuario no encontrado');
+        return { success: false, message: 'Usuario no encontrado' };
+      }
+
+      console.log('✅ Usuario encontrado:', user.name);
+      console.log('🔐 Validando contraseña...');
+
+      if (!user.validatePassword(password)) {
+        console.log('❌ Contraseña incorrecta');
+        return { success: false, message: 'Contraseña incorrecta' };
+      }
+
+      console.log('✅ Credenciales válidas');
+
+      // Generar token de autenticación
+      this.authToken = `token-${user.id}-${Date.now()}`;
+
+      // Obtener perfil completo con datos de estudiante si aplica
+      console.log('📋 Obteniendo perfil completo...');
+      const profile = await user.getProfile();
+      this.currentUser = profile;
+
+      // Guardar sesión en AsyncStorage
+      try {
+        await AsyncStorage.setItem('authToken', this.authToken);
+        await AsyncStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+        console.log('💾 Sesión guardada exitosamente');
+      } catch (storageError) {
+        console.warn('⚠️ Error guardando sesión:', storageError);
+        // Continuar aunque falle el guardado
+      }
+
+      console.log('🎉 LOGIN EXITOSO para:', this.currentUser.name);
+      return {
+        success: true,
+        token: this.authToken,
+        user: this.currentUser
+      };
+
+    } catch (error) {
+      console.error('💥 Error durante login:', error);
+      return {
+        success: false,
+        message: 'Error interno del servidor'
+      };
+    }
   }
 
   // Cerrar sesión
