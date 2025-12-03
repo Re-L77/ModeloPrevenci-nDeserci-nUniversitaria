@@ -109,6 +109,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#F8F8F8',
         paddingTop: 40,
+        paddingHorizontal: 20,
     },
     profileSection: {
         alignItems: 'center',
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         borderBottomWidth: 1,
         borderBottomColor: '#E5E5EA',
-        marginHorizontal: 15,
+        marginHorizontal: 0,
         marginBottom: 20,
         borderRadius: 12,
     },
@@ -182,7 +183,7 @@ const styles = StyleSheet.create({
     },
     infoSection: {
         backgroundColor: '#FFFFFF',
-        marginHorizontal: 15,
+        marginHorizontal: 0,
         marginBottom: 15,
         borderRadius: 12,
         paddingVertical: 15,
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
     },
     configSection: {
         backgroundColor: '#FFFFFF',
-        marginHorizontal: 15,
+        marginHorizontal: 0,
         marginBottom: 15,
         borderRadius: 12,
         overflow: 'hidden',
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
     },
     logoutButton: {
         flexDirection: 'row',
-        marginHorizontal: 15,
+        marginHorizontal: 0,
         marginBottom: 20,
         paddingVertical: 16,
         paddingHorizontal: 20,
@@ -259,7 +260,7 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
         borderTopWidth: 1,
         borderTopColor: '#E5E5EA',
-        marginHorizontal: 15,
+        marginHorizontal: 0,
     },
     footerText: {
         fontSize: 12,

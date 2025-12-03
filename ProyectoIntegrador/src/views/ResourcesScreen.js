@@ -143,10 +143,6 @@ const ResourcesScreen = () => {
             Material de estudio, tutorías y más
           </Text>
         </View>
-        <View style={styles.notificationIconContainer}>
-          <Icon name="notifications-outline" size={24} color="#FBBF24" />
-          <View style={styles.notificationBadge} />
-        </View>
       </View>
 
       <View style={styles.searchContainer}>
