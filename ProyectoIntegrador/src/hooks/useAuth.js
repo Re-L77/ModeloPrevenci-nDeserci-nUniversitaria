@@ -8,23 +8,12 @@ export const useAuthLogic = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Inicialización inicial
+        // Inicialización inicial solo una vez
         const initialize = async () => {
             await checkAuthStatus();
-
-            // Verificar periódicamente el estado
-            const interval = setInterval(checkAuthStatus, 3000);
-
-            return () => clearInterval(interval);
         };
 
-        const cleanup = initialize();
-
-        return () => {
-            if (cleanup && typeof cleanup === 'function') {
-                cleanup();
-            }
-        };
+        initialize();
     }, []);
 
     const checkAuthStatus = async () => {
@@ -33,12 +22,13 @@ export const useAuthLogic = () => {
             const isAuth = userController.isAuthenticated();
 
             if (isAuth && user) {
-                if (!currentUser || currentUser.id !== user.id) {
+                // Solo actualizar si realmente hay cambios
+                if (!currentUser || currentUser.id !== user.id || !isAuthenticated) {
                     setCurrentUser(user);
                     setIsAuthenticated(true);
                 }
             } else {
-                // Si no hay autenticación válida, limpiar estado
+                // Solo limpiar si realmente hay algo que limpiar
                 if (isAuthenticated || currentUser) {
                     setCurrentUser(null);
                     setIsAuthenticated(false);
@@ -46,9 +36,11 @@ export const useAuthLogic = () => {
             }
         } catch (error) {
             console.error('Error verificando estado de autenticación:', error);
-            // En caso de error, limpiar estado por seguridad
-            setCurrentUser(null);
-            setIsAuthenticated(false);
+            // Solo limpiar si hay algo que limpiar
+            if (isAuthenticated || currentUser) {
+                setCurrentUser(null);
+                setIsAuthenticated(false);
+            }
         } finally {
             if (loading) {
                 setLoading(false);
@@ -115,6 +107,18 @@ export const useAuthLogic = () => {
         }
     };
 
+    const setUser = async (user) => {
+        try {
+            console.log('Hook useAuth: Estableciendo usuario:', user.name);
+            setCurrentUser(user);
+            setIsAuthenticated(true);
+            return { success: true };
+        } catch (error) {
+            console.error('Hook useAuth: Error estableciendo usuario:', error);
+            return { success: false, message: error.message };
+        }
+    };
+
     const updateUserProfile = async (updatedData) => {
         try {
             const result = await userController.updateProfile(updatedData);
@@ -135,6 +139,7 @@ export const useAuthLogic = () => {
         loading,
         login,
         logout,
+        setUser,
         updateUserProfile,
         checkAuthStatus
     };

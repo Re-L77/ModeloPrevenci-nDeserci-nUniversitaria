@@ -9,10 +9,10 @@ const logoImage = require('../../assets/LogoPI.png');
 export default function ForgotPasswordScreen() {
   const navigation = useNavigation();
   const [step, setStep] = useState(1); // 1: email, 2: code, 3: new password
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('carlos.rodriguez@universidad.edu');
   const [code, setCode] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('nuevapass123');
+  const [confirmPassword, setConfirmPassword] = useState('nuevapass123');
   const [loading, setLoading] = useState(false);
   const [demoCode, setDemoCode] = useState('');
 
@@ -107,7 +107,7 @@ export default function ForgotPasswordScreen() {
       <Text style={styles.label}>Correo Electrónico</Text>
       <TextInput
         style={styles.input}
-        placeholder="nombre@ejemplo.com"
+        placeholder="tu.correo@universidad.edu"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -132,7 +132,7 @@ export default function ForgotPasswordScreen() {
       <Text style={styles.label}>Código de Verificación</Text>
       <TextInput
         style={styles.input}
-        placeholder="123456"
+        placeholder="Ingresa el código de 6 dígitos"
         value={code}
         onChangeText={setCode}
         keyboardType="numeric"
@@ -167,7 +167,7 @@ export default function ForgotPasswordScreen() {
       <Text style={styles.label}>Nueva Contraseña</Text>
       <TextInput
         style={styles.input}
-        placeholder="Mínimo 6 caracteres"
+        placeholder="Nueva contraseña (mínimo 6 caracteres)"
         value={newPassword}
         onChangeText={setNewPassword}
         secureTextEntry
@@ -176,7 +176,7 @@ export default function ForgotPasswordScreen() {
       <Text style={styles.label}>Confirmar Contraseña</Text>
       <TextInput
         style={styles.input}
-        placeholder="Repite la contraseña"
+        placeholder="Confirma tu nueva contraseña"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         secureTextEntry

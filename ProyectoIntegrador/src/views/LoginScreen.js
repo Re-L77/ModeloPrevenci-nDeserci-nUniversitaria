@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Keyboard, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { validateEmail } from '../utils/helpers';
@@ -9,11 +9,11 @@ const logoImage = require('../../assets/LogoPI.png');
 
 export default function LoginScreen() {
   const navigation = useNavigation();
-  const { login: contextLogin } = useAuth();
+  const { setUser } = useAuth();
   const passwordRef = useRef(null);
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('maria.garcia@universidad.edu');
+  const [password, setPassword] = useState('demo123');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
@@ -37,7 +37,7 @@ export default function LoginScreen() {
 
       if (result.success && result.user) {
         console.log('LoginScreen: Login exitoso:', result.user.name);
-        await contextLogin(result.user);
+        await setUser(result.user);
       } else {
         Alert.alert('Error', result.message || 'Credenciales incorrectas');
       }
@@ -48,7 +48,7 @@ export default function LoginScreen() {
     setLoading(false);
   };
 
-  const handleDemoLogin = async (demoUser) => {
+  const handleDemoLogin = useCallback(async (demoUser) => {
     setLoading(true);
     try {
       console.log('LoginScreen: Login de demostración:', demoUser.email);
@@ -56,7 +56,7 @@ export default function LoginScreen() {
 
       if (result.success && result.user) {
         console.log('LoginScreen: Demo login exitoso:', result.user.name);
-        await contextLogin(result.user);
+        await setUser(result.user);
       } else {
         Alert.alert('Error', result.message || 'Usuario de demostración no encontrado');
       }
@@ -65,7 +65,7 @@ export default function LoginScreen() {
       Alert.alert('Error', 'Error al iniciar sesión de demostración');
     }
     setLoading(false);
-  };
+  }, [setUser]);
 
   const useDemoCredentials = () => {
     setEmail('maria.garcia@universidad.edu');
@@ -91,7 +91,7 @@ export default function LoginScreen() {
             <Text style={styles.label}>Correo Electrónico</Text>
             <TextInput
               style={styles.input}
-              placeholder="nombre@ejemplo.com"
+              placeholder="usuario@universidad.edu"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -102,7 +102,7 @@ export default function LoginScreen() {
             <TextInput
               ref={passwordRef}
               style={styles.input}
-              placeholder="********"
+              placeholder="Ingresa tu contraseña"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
