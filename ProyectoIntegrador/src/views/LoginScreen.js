@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
-import {View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Keyboard, Image} from 'react-native'; 
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Keyboard, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { validateEmail } from '../utils/helpers';
 import { loginUser } from '../controllers/UserController';
 
-const logoImage = require('../../assets/Logo.jpeg'); 
+const logoImage = require('../../assets/LogoPI.png');
 
 export default function LoginScreen() {
   const navigation = useNavigation();
@@ -89,10 +89,10 @@ export default function LoginScreen() {
   return (
     <View style={styles.page}>
       <View style={styles.card}>
-        
-        <Image 
-            source={logoImage} 
-            style={styles.logo} 
+
+        <Image
+          source={logoImage}
+          style={styles.logo}
         />
 
         <Text style={styles.title}>Bienvenido</Text>
@@ -101,7 +101,7 @@ export default function LoginScreen() {
         <Text style={styles.label}>Correo Electrónico</Text>
         <TextInput
           style={[styles.input, emailError ? styles.inputError : null]}
-          placeholder="nombre@ejemplo.com" 
+          placeholder="nombre@ejemplo.com"
           value={email}
           onChangeText={(t) => {
             setEmail(t);
