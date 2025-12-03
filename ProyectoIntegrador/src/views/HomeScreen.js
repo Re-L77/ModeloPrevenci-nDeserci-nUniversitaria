@@ -71,8 +71,14 @@ export default function PantallaPrincipalEstudiante() {
           setMaterias(materiasSimuladas);
         }
 
-        // Cargar recursos recientes
-        const resourceResult = await resourceController.getAllResources();
+        // Cargar recursos específicos por carrera
+        let resourceResult;
+        if (currentUser?.student?.career) {
+          resourceResult = await resourceController.getResourcesByCareer(currentUser.student.career);
+        } else {
+          resourceResult = await resourceController.getAllResources();
+        }
+
         if (resourceResult.success) {
           // Tomar solo los primeros 3 recursos
           setRecursos(resourceResult.data.slice(0, 3));
@@ -93,13 +99,34 @@ export default function PantallaPrincipalEstudiante() {
 
   // Generar materias simuladas basadas en el estudiante real
   const generateStudentSubjects = (student) => {
-    const baseSubjects = [
-      { code: 'BD202', name: 'Base de Datos II', professor: 'Dr. Carlos Ruiz', credits: 4 },
-      { code: 'DW301', name: 'Desarrollo Web', professor: 'Ing. Laura Méndez', credits: 4 },
-      { code: 'MD205', name: 'Matemáticas Discretas', professor: 'Dr. Roberto Silva', credits: 3 },
-      { code: 'AA504', name: 'Algoritmos Avanzados', professor: 'Dra. Ana Torres', credits: 4 },
-      { code: 'RC401', name: 'Redes de Computadoras', professor: 'Ing. Miguel López', credits: 4 }
-    ];
+    // Materias específicas por carrera
+    const subjectsByCareer = {
+      'Ingeniería de Sistemas': [
+        { code: 'BD202', name: 'Base de Datos II', professor: 'Dr. Carlos Ruiz', credits: 4 },
+        { code: 'DW301', name: 'Desarrollo Web', professor: 'Ing. Laura Méndez', credits: 4 },
+        { code: 'MD205', name: 'Matemáticas Discretas', professor: 'Dr. Roberto Silva', credits: 3 },
+        { code: 'AA504', name: 'Algoritmos Avanzados', professor: 'Dra. Ana Torres', credits: 4 },
+        { code: 'RC401', name: 'Redes de Computadoras', professor: 'Ing. Miguel López', credits: 4 }
+      ],
+      'Ingeniería Industrial': [
+        { code: 'IO301', name: 'Investigación Operativa', professor: 'Dr. Carlos Ruiz', credits: 4 },
+        { code: 'PP205', name: 'Planeación y Control de la Producción', professor: 'Ing. Laura Méndez', credits: 4 },
+        { code: 'EI304', name: 'Estadística Industrial', professor: 'Dr. Roberto Silva', credits: 3 },
+        { code: 'SC402', name: 'Sistemas de Calidad', professor: 'Dra. Ana Torres', credits: 4 },
+        { code: 'LM401', name: 'Logística y Manufactura', professor: 'Ing. Miguel López', credits: 4 }
+      ],
+      'Administración de Empresas': [
+        { code: 'FE301', name: 'Finanzas Empresariales', professor: 'Dr. Carlos Ruiz', credits: 4 },
+        { code: 'MK205', name: 'Marketing Estratégico', professor: 'Ing. Laura Méndez', credits: 4 },
+        { code: 'RH304', name: 'Gestión de Recursos Humanos', professor: 'Dr. Roberto Silva', credits: 3 },
+        { code: 'PE402', name: 'Planeación Estratégica', professor: 'Dra. Ana Torres', credits: 4 },
+        { code: 'CO401', name: 'Control Organizacional', professor: 'Ing. Miguel López', credits: 4 }
+      ]
+    };
+
+    // Obtener materias según la carrera del estudiante
+    const career = student.career || 'Ingeniería de Sistemas';
+    const baseSubjects = subjectsByCareer[career] || subjectsByCareer['Ingeniería de Sistemas'];
 
     return baseSubjects.map((subject, index) => {
       // Generar notas basadas en el GPA del estudiante
