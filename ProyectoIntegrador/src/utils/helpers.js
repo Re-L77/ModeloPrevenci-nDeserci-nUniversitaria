@@ -2,9 +2,10 @@
 
 // TODO: Agregar funciones de validación, formateo, etc.
 
-export const validateEmail = (email) => {
-    // TODO: Implementar validación de email
-    return true;
+export function validateEmail(email) {
+  if (!email) return false;
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(String(email).toLowerCase());
 };
 
 export const formatDate = (date) => {
