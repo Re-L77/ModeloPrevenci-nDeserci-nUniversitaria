@@ -153,7 +153,7 @@ const insertDemoData = async () => {
 
         // === ALERTAS DEMO ===
 
-        // Alertas para María (riesgo bajo)
+        // Alertas para María - Ingeniería de Sistemas (riesgo bajo)
         await database.runAsync(
             'INSERT INTO alerts (student_id, type, title, message, severity) VALUES (?, ?, ?, ?, ?)',
             [1, 'academic', 'Recordatorio de Matrícula', 'La matrícula para el próximo semestre cierra el 15 de diciembre', 'high']
@@ -161,10 +161,15 @@ const insertDemoData = async () => {
 
         await database.runAsync(
             'INSERT INTO alerts (student_id, type, title, message, severity) VALUES (?, ?, ?, ?, ?)',
-            [1, 'attendance', 'Asistencia Regular', 'Has faltado 3 veces a Cálculo III este mes', 'medium']
+            [1, 'attendance', 'Base de Datos II - Asistencia', 'Has faltado 3 veces a Base de Datos II este mes', 'medium']
         );
 
-        // Alertas para Carlos (riesgo crítico)
+        await database.runAsync(
+            'INSERT INTO alerts (student_id, type, title, message, severity) VALUES (?, ?, ?, ?, ?)',
+            [1, 'academic', 'Proyecto de Desarrollo Web', 'Entrega del proyecto final de React pendiente para el 20 de diciembre', 'medium']
+        );
+
+        // Alertas para Carlos - Ingeniería Industrial (riesgo crítico)
         await database.runAsync(
             'INSERT INTO alerts (student_id, type, title, message, severity) VALUES (?, ?, ?, ?, ?)',
             [2, 'academic', 'GPA Crítico', 'Tu promedio académico está por debajo del mínimo requerido (2.1)', 'critical']
@@ -172,7 +177,12 @@ const insertDemoData = async () => {
 
         await database.runAsync(
             'INSERT INTO alerts (student_id, type, title, message, severity) VALUES (?, ?, ?, ?, ?)',
-            [2, 'attendance', 'Asistencia Crítica', 'Has acumulado 15 faltas este semestre. Riesgo de pérdida de asignatura', 'critical']
+            [2, 'attendance', 'Investigación Operativa - Crítico', 'Has acumulado 15 faltas en Investigación Operativa. Riesgo de pérdida de asignatura', 'critical']
+        );
+
+        await database.runAsync(
+            'INSERT INTO alerts (student_id, type, title, message, severity) VALUES (?, ?, ?, ?, ?)',
+            [2, 'academic', 'Examen de Estadística Industrial', 'Debes presentar el examen supletorio de Estadística Industrial antes del 18 de diciembre', 'high']
         );
 
         await database.runAsync(
@@ -180,10 +190,20 @@ const insertDemoData = async () => {
             [2, 'financial', 'Pendiente Financiero', 'Tienes pagos pendientes que pueden afectar tu matrícula', 'high']
         );
 
-        // Alerta para Ana (estudiante exitosa)
+        // Alertas para Ana - Administración de Empresas (estudiante destacada)
         await database.runAsync(
             'INSERT INTO alerts (student_id, type, title, message, severity) VALUES (?, ?, ?, ?, ?)',
             [3, 'general', 'Oportunidad de Beca', 'Calificas para la beca de excelencia académica', 'low']
+        );
+
+        await database.runAsync(
+            'INSERT INTO alerts (student_id, type, title, message, severity) VALUES (?, ?, ?, ?, ?)',
+            [3, 'career', 'Práctica Profesional', 'Nuevas oportunidades de prácticas en empresas financieras disponibles', 'low']
+        );
+
+        await database.runAsync(
+            'INSERT INTO alerts (student_id, type, title, message, severity) VALUES (?, ?, ?, ?, ?)',
+            [3, 'academic', 'Seminario de Liderazgo', 'Invitación al seminario "Liderazgo Empresarial" - 22 de diciembre', 'low']
         );
 
         // === RECURSOS ACADÉMICOS POR CARRERA ===
@@ -260,7 +280,7 @@ const insertDemoData = async () => {
         console.log('✅ Datos de demostración insertados:');
         console.log('👤 3 usuarios estudiantes creados');
         console.log('🎓 3 estudiantes con diferentes niveles de riesgo');
-        console.log('🚨 6 alertas de ejemplo');
+        console.log('🚨 9 alertas específicas por carrera');
         console.log('📚 15 recursos educativos específicos por carrera');
     } catch (error) {
         console.error('Error insertando datos demo:', error);
