@@ -1,31 +1,124 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from "react-native";
+import { useAuth } from '../navigation/RootNavigator';
+import alertController from '../controllers/AlertController';
 
 export default function AlertsScreen() {
+    const { currentUser } = useAuth();
 
-    const [notificaciones, setNotificaciones] = useState([
-        {
-            id: 1,
-            titulo: "Asistencia Baja",
-            desc: "Tu asistencia en Matemáticas Discretas es del 78%. Se requiere mínimo 80%.",
-            tipo: "Asistencia",
-            leida: false
-        },
-        {
-            id: 2,
-            titulo: "Calificación en Riesgo",
-            desc: "Tu promedio de 7.2 en Matemáticas Discretas está por debajo del mínimo recomendado.",
-            tipo: "Calificación",
-            leida: false
-        },
-    ]);
+    const [notificaciones, setNotificaciones] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // Cargar alertas desde la base de datos
+    useEffect(() => {
+        const loadAlerts = async () => {
+            if (!currentUser?.student?.id) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                console.log('AlertsScreen: Cargando alertas para estudiante ID:', currentUser.student.id);
+                const result = await alertController.getAlertsByStudent(currentUser.student.id);
+
+                if (result.success) {
+                    const alertasUI = result.data.map(alert => ({
+                        id: alert.id,
+                        titulo: alert.title,
+                        desc: alert.message,
+                        tipo: mapAlertType(alert.type),
+                        severity: alert.severity,
+                        leida: alert.status !== 'active'
+                    }));
+                    setNotificaciones(alertasUI);
+                    console.log('AlertsScreen: Alertas cargadas:', alertasUI.length);
+                } else {
+                    console.warn('AlertsScreen: Error cargando alertas:', result.message);
+                }
+            } catch (error) {
+                console.error('AlertsScreen: Error cargando alertas:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadAlerts();
+    }, [currentUser]);
+
+    // Mapear tipos de alerta para la UI
+    const mapAlertType = (type) => {
+        const typeMap = {
+            'academic': 'Académico',
+            'attendance': 'Asistencia',
+            'financial': 'Financiero',
+            'career': 'Carrera',
+            'general': 'General'
+        };
+        return typeMap[type] || 'General';
+    };
+
+    // Obtener icono según tipo y severidad
+    const getAlertIcon = (tipo, severity) => {
+        if (severity === 'critical') return '🚨';
+        if (severity === 'high') return '⚠️';
+        if (tipo === 'Asistencia') return '📅';
+        if (tipo === 'Académico') return '📚';
+        if (tipo === 'Financiero') return '💰';
+        if (tipo === 'Carrera') return '👨‍🎓';
+        return '🔔';
+    };
+
+    // Obtener color de fondo según severidad
+    const getIconBackground = (severity) => {
+        if (severity === 'critical') return '#FFE1E1';
+        if (severity === 'high') return '#FFF1C9';
+        if (severity === 'medium') return '#E3F2FD';
+        return '#F0F8FF';
+    };
 
 
     const eliminarNotificacion = async (id) => {
-        console.log("Eliminar en BD (pendiente): ", id);
+        try {
+            console.log('AlertsScreen: Eliminando alerta ID:', id);
+            const result = await alertController.deleteAlert(id);
+            
+            if (result.success) {
+                setNotificaciones(prev => prev.filter(noti => noti.id !== id));
+            } else {
+                console.warn('AlertsScreen: Error eliminando alerta:', result.message);
+            }
+        } catch (error) {
+            console.error('AlertsScreen: Error eliminando alerta:', error);
+        }
+    };
 
+    // Marcar alerta como leída
+    const marcarComoLeida = async (id) => {
+        try {
+            const result = await alertController.resolveAlert(id);
+            
+            if (result.success) {
+                setNotificaciones(prev => prev.map(noti => 
+                    noti.id === id ? { ...noti, leida: true } : noti
+                ));
+            }
+        } catch (error) {
+            console.error('AlertsScreen: Error marcando como leída:', error);
+        }
+    };
 
-        setNotificaciones(prev => prev.filter(noti => noti.id !== id));
+    // Marcar todas como leídas
+    const marcarTodasLeidas = async () => {
+        try {
+            const promises = notificaciones
+                .filter(noti => !noti.leida)
+                .map(noti => alertController.resolveAlert(noti.id));
+            
+            await Promise.all(promises);
+            setNotificaciones(prev => prev.map(noti => ({ ...noti, leida: true })));
+        } catch (error) {
+            console.error('AlertsScreen: Error marcando todas como leídas:', error);
+        }
     };
 
     return (
@@ -40,21 +133,25 @@ export default function AlertsScreen() {
                     </View>
                 </View>
 
-                <TouchableOpacity style={styles.markAllBtn}>
+                <TouchableOpacity style={styles.markAllBtn} onPress={marcarTodasLeidas}>
                     <Text style={styles.markAllText}>Marcar todas como leídas</Text>
                 </TouchableOpacity>
             </View>
 
 
 
-            {notificaciones.length === 0 ? (
+            {loading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#007AFF" />
+                    <Text style={styles.loadingText}>Cargando notificaciones...</Text>
+                </View>
+            ) : notificaciones.length === 0 ? (
                 <View style={styles.emptyContainer}>
                     <Image
                         source={require('../../assets/fondoNotis.png')}
                         style={styles.emptyImage}
                         resizeMode="contain"
                     />
-
                     <Text style={styles.emptyText}>No hay notificaciones</Text>
                 </View>
             ) : (
@@ -62,10 +159,9 @@ export default function AlertsScreen() {
                     {notificaciones.map((item) => (
                         <View key={item.id} style={styles.card}>
                             <View style={styles.row}>
-
-                                <View style={item.tipo === "Asistencia" ? styles.iconWarning : styles.iconAlert}>
+                                <View style={[styles.iconContainer, { backgroundColor: getIconBackground(item.severity) }]}>
                                     <Text style={{ fontSize: 20 }}>
-                                        {item.tipo === "Asistencia" ? "⚠️" : "🚨"}
+                                        {getAlertIcon(item.tipo, item.severity)}
                                     </Text>
                                 </View>
 
@@ -88,9 +184,11 @@ export default function AlertsScreen() {
                                     </View>
 
                                     <View style={styles.actionsRow}>
-                                        <TouchableOpacity>
-                                            <Text style={styles.markRead}>✓ Marcar como leída</Text>
-                                        </TouchableOpacity>
+                                        {!item.leida && (
+                                            <TouchableOpacity onPress={() => marcarComoLeida(item.id)}>
+                                                <Text style={styles.markRead}>✓ Marcar como leída</Text>
+                                            </TouchableOpacity>
+                                        )}
 
                                         <TouchableOpacity onPress={() => eliminarNotificacion(item.id)}>
                                             <Text style={styles.delete}>🗑 Eliminar</Text>
@@ -201,6 +299,29 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         marginRight: 15,
+    },
+
+    iconContainer: {
+        width: 35,
+        height: 35,
+        borderRadius: 30,
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 15,
+    },
+
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 50,
+    },
+
+    loadingText: {
+        marginTop: 16,
+        fontSize: 16,
+        color: '#6B7280',
+        textAlign: 'center',
     },
 
     cardTitle: {
