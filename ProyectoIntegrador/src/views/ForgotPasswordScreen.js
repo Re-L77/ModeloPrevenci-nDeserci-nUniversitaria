@@ -17,14 +17,21 @@ export default function ForgotPasswordScreen() {
   const [demoCode, setDemoCode] = useState('');
 
   const handleSendCode = async () => {
-    if (!email || !validateEmail(email)) {
-      Alert.alert('Error', 'Ingresa un correo válido.');
+    const { validateInstitutionalEmail } = require('../utils/helpers');
+
+    if (!email || !email.trim()) {
+      Alert.alert('Error', 'Ingresa tu correo electrónico.');
+      return;
+    }
+
+    if (!validateInstitutionalEmail(email)) {
+      Alert.alert('Error', 'Debes usar tu correo institucional (@universidad.edu).');
       return;
     }
 
     setLoading(true);
     try {
-      const result = await userController.requestPasswordReset(email);
+      const result = await userController.requestPasswordReset(email.trim());
 
       if (result.success) {
         setDemoCode(result.demoCode || '');
@@ -43,14 +50,17 @@ export default function ForgotPasswordScreen() {
   };
 
   const handleVerifyCode = async () => {
-    if (!code || code.length !== 6) {
-      Alert.alert('Error', 'Ingresa un código de 6 dígitos válido.');
+    const { validateVerificationCode, formatErrorMessage } = require('../utils/helpers');
+
+    const validation = validateVerificationCode(code);
+    if (!validation.isValid) {
+      Alert.alert('Error', formatErrorMessage(validation.errors));
       return;
     }
 
     setLoading(true);
     try {
-      const result = await userController.verifyResetCode(email, code);
+      const result = await userController.verifyResetCode(email, code.trim());
 
       if (result.success) {
         setStep(3);
@@ -64,8 +74,17 @@ export default function ForgotPasswordScreen() {
   };
 
   const handleResetPassword = async () => {
-    if (!newPassword || newPassword.length < 6) {
-      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres.');
+    const { validatePasswordChangeForm, formatErrorMessage } = require('../utils/helpers');
+
+    // Usar una contraseña dummy para currentPassword ya que no es relevante aquí
+    const validation = validatePasswordChangeForm('dummy', newPassword, confirmPassword);
+    // Filtrar el error de contraseña actual ya que no aplica aquí
+    const relevantErrors = validation.errors.filter(error =>
+      !error.includes('contraseña actual') && !error.includes('diferente a la actual')
+    );
+
+    if (relevantErrors.length > 0) {
+      Alert.alert('Error', formatErrorMessage(relevantErrors));
       return;
     }
 

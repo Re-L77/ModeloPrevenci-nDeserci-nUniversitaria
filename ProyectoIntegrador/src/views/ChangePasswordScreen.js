@@ -39,18 +39,19 @@ const ChangePasswordScreen = () => {
     };
 
     const validatePasswords = () => {
-        if (!passwordData.currentPassword) {
-            Alert.alert('Error', 'Por favor ingresa tu contraseña actual');
+        const { validatePasswordChangeForm, formatErrorMessage } = require('../utils/helpers');
+
+        const validation = validatePasswordChangeForm(
+            passwordData.currentPassword,
+            passwordData.newPassword,
+            passwordData.confirmPassword
+        );
+
+        if (!validation.isValid) {
+            Alert.alert('Errores de validación', formatErrorMessage(validation.errors));
             return false;
         }
-        if (!passwordData.newPassword || passwordData.newPassword.length < 6) {
-            Alert.alert('Error', 'La nueva contraseña debe tener al menos 6 caracteres');
-            return false;
-        }
-        if (passwordData.newPassword !== passwordData.confirmPassword) {
-            Alert.alert('Error', 'Las contraseñas no coinciden');
-            return false;
-        }
+
         return true;
     };
 

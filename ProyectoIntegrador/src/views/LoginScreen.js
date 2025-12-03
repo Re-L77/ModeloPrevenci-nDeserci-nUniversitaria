@@ -23,9 +23,7 @@ export default function LoginScreen() {
   const [demoNames, setDemoNames] = useState({
     carlos: 'Carlos Rodríguez',
     maria: 'María García',
-    ana: 'Ana Delgado',
-    admin: 'Dr. Ana Martínez',
-    luis: 'Prof. Luis Hernández'
+    ana: 'Ana Delgado'
   });
 
   useFocusEffect(
@@ -35,15 +33,11 @@ export default function LoginScreen() {
           const uMaria = await User.findByEmail('maria.garcia@universidad.edu');
           const uCarlos = await User.findByEmail('carlos.rodriguez@universidad.edu');
           const uAna = await User.findByEmail('ana.delgado@universidad.edu');
-          const uAdmin = await User.findByEmail('admin@universidad.edu');
-          const uLuis = await User.findByEmail('luis.hernandez@universidad.edu');
 
           setDemoNames({
             maria: uMaria ? uMaria.name : 'María García',
             carlos: uCarlos ? uCarlos.name : 'Carlos Rodríguez',
             ana: uAna ? uAna.name : 'Ana Delgado',
-            admin: uAdmin ? uAdmin.name : 'Dr. Ana Martínez',
-            luis: uLuis ? uLuis.name : 'Prof. Luis Hernández',
           });
         } catch (error) {
           console.log('Error cargando nombres demo:', error);
@@ -57,29 +51,28 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     Keyboard.dismiss();
 
-    if (!email || !password) {
-      Alert.alert('Error', 'Por favor completa todos los campos');
-      return;
-    }
+    // Validar formulario completo
+    const { validateLoginForm, formatErrorMessage } = require('../utils/helpers');
 
-    if (!validateEmail(email)) {
-      Alert.alert('Error', 'Formato de email inválido');
+    const validation = validateLoginForm(email, password);
+    if (!validation.isValid) {
+      Alert.alert('Errores de validación', formatErrorMessage(validation.errors));
       return;
     }
 
     setLoading(true);
     try {
-      const result = await userController.login(email, password);
+      const result = await userController.login(email.trim(), password);
 
       if (result.success && result.user) {
         console.log('LoginScreen: Login exitoso:', result.user.name);
         await setUser(result.user);
       } else {
-        Alert.alert('Error', result.message || 'Credenciales incorrectas');
+        Alert.alert('Error de acceso', result.message || 'Credenciales incorrectas');
       }
     } catch (error) {
       console.error('LoginScreen: Error en login:', error);
-      Alert.alert('Error', 'Error al iniciar sesión. Intenta de nuevo.');
+      Alert.alert('Error de conexión', 'Error al iniciar sesión. Intenta de nuevo.');
     }
     setLoading(false);
   };
@@ -116,7 +109,7 @@ export default function LoginScreen() {
           <View style={styles.card}>
             <Image source={logoImage} style={styles.logo} />
             <Text style={styles.title}>Bienvenido</Text>
-            <Text style={styles.subtitle}>Sistema de Prevención de Deserción</Text>
+            <Text style={styles.subtitle}>Sistema de Prevención de Deserción Estudiantil</Text>
 
             <Text style={styles.label}>Correo Electrónico</Text>
             <TextInput
@@ -154,8 +147,8 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             <View style={styles.demoSection}>
-              <Text style={styles.demoSectionTitle}>🎯 Usuarios de Demostración</Text>
-              <Text style={styles.demoSectionSubtitle}>Datos actualizados en tiempo real</Text>
+              <Text style={styles.demoSectionTitle}>👥 Estudiantes de Demostración</Text>
+              <Text style={styles.demoSectionSubtitle}>Diferentes perfiles académicos</Text>
 
               <TouchableOpacity
                 style={[styles.demoButton, styles.demoButtonRisk]}
@@ -184,23 +177,7 @@ export default function LoginScreen() {
                 <Text style={styles.demoButtonSubtext}>Estudiante - Rendimiento Excelente</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.demoButton, styles.demoButtonAdmin]}
-                onPress={() => handleDemoLogin({ email: 'admin@universidad.edu', password: 'admin123' })}
-                disabled={loading}
-              >
-                <Text style={styles.demoButtonText}>👩‍💼 {demoNames.admin}</Text>
-                <Text style={styles.demoButtonSubtext}>Administrador</Text>
-              </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.demoButton}
-                onPress={() => handleDemoLogin({ email: 'luis.hernandez@universidad.edu', password: 'prof123' })}
-                disabled={loading}
-              >
-                <Text style={styles.demoButtonText}>👨‍🏫 {demoNames.luis}</Text>
-                <Text style={styles.demoButtonSubtext}>Profesor/Consejero</Text>
-              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -339,10 +316,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0FFF0',
     borderColor: '#4CAF50',
   },
-  demoButtonAdmin: {
-    backgroundColor: '#FFF9F0',
-    borderColor: '#FF9800',
-  },
+
   demoButtonText: {
     fontSize: 14,
     fontWeight: '600',

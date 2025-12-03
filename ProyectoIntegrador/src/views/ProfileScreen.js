@@ -1,5 +1,5 @@
 import React from 'react';
-import {View,Text,StyleSheet,ScrollView,TouchableOpacity,Alert,} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../navigation/RootNavigator';
 
@@ -59,27 +59,27 @@ const ProfileScreen = ({ navigation }) => {
             </Text>
           </View>
         </View>
-        
+
         <Text style={styles.userName}>{currentUser?.name || 'Cargando usuario...'}</Text>
-        
+
         <Text style={styles.userCareer}>
           {currentUser?.student?.career ||
             (currentUser?.role === 'admin' ? 'Administrador' :
-             currentUser?.role === 'teacher' ? 'Profesor' : 'Estudiante')}
+              currentUser?.role === 'teacher' ? 'Profesor' : 'Estudiante')}
         </Text>
 
         <Text style={[
           styles.userStatus,
           currentUser?.student?.risk_level === 'critical' ? styles.riskCritical :
-          currentUser?.student?.risk_level === 'high' ? styles.riskHigh :
-          currentUser?.student?.risk_level === 'medium' ? styles.riskMedium :
-          styles.riskLow
+            currentUser?.student?.risk_level === 'high' ? styles.riskHigh :
+              currentUser?.student?.risk_level === 'medium' ? styles.riskMedium :
+                styles.riskLow
         ]}>
           {currentUser?.student?.risk_level === 'low' ? '✅ Bajo Riesgo' :
-           currentUser?.student?.risk_level === 'medium' ? '⚠️ Riesgo Medio' :
-           currentUser?.student?.risk_level === 'high' ? '🔴 Alto Riesgo' :
-           currentUser?.student?.risk_level === 'critical' ? '🚨 Riesgo Crítico' :
-           '✅ Estado Normal'}
+            currentUser?.student?.risk_level === 'medium' ? '⚠️ Riesgo Medio' :
+              currentUser?.student?.risk_level === 'high' ? '🔴 Alto Riesgo' :
+                currentUser?.student?.risk_level === 'critical' ? '🚨 Riesgo Crítico' :
+                  '✅ Estado Normal'}
         </Text>
       </View>
 
@@ -111,11 +111,7 @@ const ProfileScreen = ({ navigation }) => {
 
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Tipo de Usuario</Text>
-          <Text style={styles.infoValue}>
-            {currentUser?.role === 'student' ? 'Estudiante' :
-             currentUser?.role === 'admin' ? 'Administrador' :
-             currentUser?.role === 'teacher' ? 'Profesor' : 'Usuario'}
-          </Text>
+          <Text style={styles.infoValue}>Estudiante</Text>
         </View>
 
         {currentUser?.student && (

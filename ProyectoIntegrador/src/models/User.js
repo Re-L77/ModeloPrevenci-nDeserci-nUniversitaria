@@ -11,6 +11,7 @@ class User {
         this.role = data.role || 'student';
         this.profile_picture = data.profile_picture || null;
         this.phone = data.phone || null;
+        this.recovery_email = data.recovery_email || null;
         this.created_at = data.created_at || null;
         this.updated_at = data.updated_at || null;
     }
@@ -18,11 +19,11 @@ class User {
     // Crear nuevo usuario
     static async create(userData) {
         try {
-            const { name, email, password, role = 'student', profile_picture, phone } = userData;
+            const { name, email, password, role = 'student', profile_picture, phone, recovery_email } = userData;
 
             const result = await executeQuery(
-                'INSERT INTO users (name, email, password, role, profile_picture, phone) VALUES (?, ?, ?, ?, ?, ?)',
-                [name, email, password, role, profile_picture, phone]
+                'INSERT INTO users (name, email, password, role, profile_picture, phone, recovery_email) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [name, email, password, role, profile_picture, phone, recovery_email]
             );
 
             if (result.lastInsertRowId) {
@@ -80,18 +81,17 @@ class User {
     // Actualizar usuario (Método de instancia)
     async update(updateData) {
         try {
-            const { name, email, profile_picture, phone } = updateData;
+            const { profile_picture, phone, recovery_email } = updateData;
 
             await executeQuery(
-                'UPDATE users SET name = ?, email = ?, profile_picture = ?, phone = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-                [name || this.name, email || this.email, profile_picture || this.profile_picture, phone || this.phone, this.id]
+                'UPDATE users SET profile_picture = ?, phone = ?, recovery_email = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+                [profile_picture || this.profile_picture, phone || this.phone, recovery_email || this.recovery_email, this.id]
             );
 
-            // Actualizar instancia actual
-            this.name = name || this.name;
-            this.email = email || this.email;
+            // Actualizar instancia actual (el name y email no se pueden cambiar)
             this.profile_picture = profile_picture || this.profile_picture;
             this.phone = phone || this.phone;
+            this.recovery_email = recovery_email || this.recovery_email;
 
             return this;
         } catch (error) {
@@ -120,7 +120,7 @@ class User {
         try {
             // También deberíamos borrar los datos de estudiante asociados si existen
             // await executeQuery('DELETE FROM students WHERE user_id = ?', [id]); 
-            
+
             await executeQuery(
                 'DELETE FROM users WHERE id = ?',
                 [id]

@@ -20,6 +20,7 @@ const EditProfileScreen = () => {
     email: '',
     career: '',
     phone: '',
+    recovery_email: '',
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -32,6 +33,7 @@ const EditProfileScreen = () => {
         email: currentUser.email || '',
         career: currentUser.career || 'Carrera no especificada',
         phone: currentUser.phone || '',
+        recovery_email: currentUser.recovery_email || '',
       });
     }
   }, [currentUser]);
@@ -44,8 +46,16 @@ const EditProfileScreen = () => {
   };
 
   const handleSave = async () => {
-    if (formData.name.trim() === '') {
-      Alert.alert('Error', 'El nombre es obligatorio.');
+    // Validar formulario antes de enviar
+    const { validateProfileForm, formatErrorMessage } = require('../utils/helpers');
+
+    const validation = validateProfileForm({
+      phone: formData.phone,
+      recovery_email: formData.recovery_email
+    });
+
+    if (!validation.isValid) {
+      Alert.alert('Errores de validación', formatErrorMessage(validation.errors));
       return;
     }
 
@@ -53,8 +63,8 @@ const EditProfileScreen = () => {
 
     try {
       const result = await updateUserProfile({
-        name: formData.name,
-        phone: formData.phone,
+        phone: formData.phone.trim(),
+        recovery_email: formData.recovery_email.trim(),
       });
 
       if (result.success) {
@@ -78,6 +88,7 @@ const EditProfileScreen = () => {
         email: currentUser.email || '',
         career: currentUser.career || '',
         phone: currentUser.phone || '',
+        recovery_email: currentUser.recovery_email || '',
       });
     }
   };
@@ -117,22 +128,40 @@ const EditProfileScreen = () => {
         <View style={styles.formGroup}>
           <Text style={styles.label}>Nombre Completo</Text>
           <TextInput
-            style={[styles.input, !isEditing && styles.inputDisabled]}
+            style={[styles.input, styles.inputDisabled]}
             value={formData.name}
-            onChangeText={(value) => handleInputChange('name', value)}
-            editable={isEditing}
+            editable={false}
             placeholder="Nombre completo"
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Correo Electrónico</Text>
+          <Text style={styles.label}>Correo Institucional</Text>
           <TextInput
             style={[styles.input, styles.inputDisabled]}
             value={formData.email}
-            editable={false} 
-            placeholder="Correo electrónico"
+            editable={false}
+            placeholder="Correo institucional"
           />
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Correo de Recuperación</Text>
+          <TextInput
+            style={[styles.input, !isEditing && styles.inputDisabled]}
+            value={formData.recovery_email}
+            onChangeText={(value) => handleInputChange('recovery_email', value)}
+            editable={isEditing}
+            keyboardType="email-address"
+            placeholder="correo.personal@ejemplo.com"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {isEditing && (
+            <Text style={styles.fieldHint}>
+              Correo personal para recuperar tu contraseña (opcional)
+            </Text>
+          )}
         </View>
 
         <View style={styles.formGroup}>
@@ -153,8 +182,13 @@ const EditProfileScreen = () => {
             onChangeText={(value) => handleInputChange('phone', value)}
             editable={isEditing}
             keyboardType="phone-pad"
-            placeholder="Teléfono"
+            placeholder="+57 300 123 4567"
           />
+          {isEditing && (
+            <Text style={styles.fieldHint}>
+              Formato: +57 XXX XXX XXXX (opcional)
+            </Text>
+          )}
         </View>
 
         {!isEditing ? (
@@ -303,6 +337,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  fieldHint: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginTop: 4,
+    fontStyle: 'italic',
   },
 });
 

@@ -44,10 +44,14 @@ const SupportScreen = () => {
     ];
 
     const handleSendMessage = () => {
-        if (!message.trim()) {
-            Alert.alert('Error', 'Por favor escribe un mensaje');
+        const { validateSupportMessage, formatErrorMessage } = require('../utils/helpers');
+
+        const validation = validateSupportMessage(message);
+        if (!validation.isValid) {
+            Alert.alert('Error en el mensaje', formatErrorMessage(validation.errors));
             return;
         }
+
         // TODO: Enviar mensaje de soporte
         Alert.alert('Éxito', 'Tu mensaje ha sido enviado. Te responderemos pronto.');
         setMessage('');

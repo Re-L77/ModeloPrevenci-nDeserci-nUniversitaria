@@ -18,10 +18,18 @@ export const initializeDatabase = async () => {
                 role TEXT DEFAULT 'student',
                 profile_picture TEXT,
                 phone TEXT,
+                recovery_email TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         `);
+
+        // Agregar columna recovery_email si no existe (para bases de datos existentes)
+        try {
+            await database.execAsync('ALTER TABLE users ADD COLUMN recovery_email TEXT;');
+        } catch (error) {
+            // La columna ya existe o hay otro error, continuamos
+        }
 
         // Crear tabla de estudiantes
         await database.execAsync(`
@@ -95,51 +103,39 @@ const insertDemoData = async () => {
 
         // === USUARIOS DEMO ===
 
-        // Usuario estudiante principal
+        // Estudiante con rendimiento promedio
         const mariaResult = await database.runAsync(
-            'INSERT INTO users (name, email, password, role, phone) VALUES (?, ?, ?, ?, ?)',
-            ['María García López', 'maria.garcia@universidad.edu', 'demo123', 'student', '+57 300 123 4567']
+            'INSERT INTO users (name, email, password, role, phone, recovery_email) VALUES (?, ?, ?, ?, ?, ?)',
+            ['María García López', 'maria.garcia@universidad.edu', 'demo123', 'student', '+57 300 123 4567', 'maria.personal@gmail.com']
         );
 
-        // Usuario estudiante en riesgo
+        // Estudiante en riesgo académico
         const carlosResult = await database.runAsync(
-            'INSERT INTO users (name, email, password, role, phone) VALUES (?, ?, ?, ?, ?)',
-            ['Carlos Rodríguez', 'carlos.rodriguez@universidad.edu', 'demo456', 'student', '+57 301 234 5678']
+            'INSERT INTO users (name, email, password, role, phone, recovery_email) VALUES (?, ?, ?, ?, ?, ?)',
+            ['Carlos Rodríguez Pérez', 'carlos.rodriguez@universidad.edu', 'demo456', 'student', '+57 301 234 5678', 'carlos.backup@hotmail.com']
         );
 
-        // Usuario administrador
-        const adminResult = await database.runAsync(
-            'INSERT INTO users (name, email, password, role, phone) VALUES (?, ?, ?, ?, ?)',
-            ['Dr. Ana Martínez', 'admin@universidad.edu', 'admin123', 'admin', '+57 302 345 6789']
-        );
-
-        // Usuario profesor/consejero
-        const teacherResult = await database.runAsync(
-            'INSERT INTO users (name, email, password, role, phone) VALUES (?, ?, ?, ?, ?)',
-            ['Prof. Luis Hernández', 'luis.hernandez@universidad.edu', 'prof123', 'teacher', '+57 303 456 7890']
-        );
-
-        // Usuario estudiante exitoso
+        // Estudiante destacado
         const anaResult = await database.runAsync(
-            'INSERT INTO users (name, email, password, role, phone) VALUES (?, ?, ?, ?, ?)',
-            ['Ana Sofia Delgado', 'ana.delgado@universidad.edu', 'demo789', 'student', '+57 304 567 8901']
+            'INSERT INTO users (name, email, password, role, phone, recovery_email) VALUES (?, ?, ?, ?, ?, ?)',
+            ['Ana Sofia Delgado', 'ana.delgado@universidad.edu', 'demo789', 'student', '+57 304 567 8901', 'ana.personal@outlook.com']
         );
 
-        // === ESTUDIANTES DEMO ===
+        // === DATOS ACADÉMICOS DE ESTUDIANTES ===
 
-        // María - Estudiante promedio
+        // María - Rendimiento promedio
         await database.runAsync(
             'INSERT INTO students (user_id, student_code, career, semester, gpa, risk_level, enrollment_date, academic_credits, failed_subjects, absences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [mariaResult.lastInsertRowId, 'EST001', 'Ingeniería de Sistemas', 6, 3.8, 'low', '2022-01-15', 120, 2, 5]
         );
 
-        // Carlos - Estudiante en riesgo alto
+        // Carlos - En riesgo académico
         await database.runAsync(
             'INSERT INTO students (user_id, student_code, career, semester, gpa, risk_level, enrollment_date, academic_credits, failed_subjects, absences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [carlosResult.lastInsertRowId, 'EST002', 'Ingeniería Industrial', 4, 2.1, 'critical', '2023-01-15', 85, 6, 15]
         );
 
-        // Ana - Estudiante exitosa
+        // Ana - Estudiante destacada
         await database.runAsync(
             'INSERT INTO students (user_id, student_code, career, semester, gpa, risk_level, enrollment_date, academic_credits, failed_subjects, absences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [anaResult.lastInsertRowId, 'EST003', 'Administración de Empresas', 8, 4.2, 'low', '2021-08-15', 180, 0, 2]
@@ -248,7 +244,7 @@ const insertDemoData = async () => {
         );
 
         console.log('✅ Datos de demostración insertados:');
-        console.log('👤 5 usuarios creados (estudiantes, admin, profesor)');
+        console.log('👤 3 usuarios estudiantes creados');
         console.log('🎓 3 estudiantes con diferentes niveles de riesgo');
         console.log('🚨 6 alertas de ejemplo');
         console.log('📚 12 recursos educativos');

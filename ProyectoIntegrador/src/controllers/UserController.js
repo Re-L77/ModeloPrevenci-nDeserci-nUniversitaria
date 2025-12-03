@@ -118,31 +118,28 @@ class UserController {
     try {
       const { name, email, password, confirmPassword, phone } = userData;
 
-      // Validaciones
-      if (!name || !email || !password) {
-        throw new Error('Todos los campos son requeridos');
-      }
+      // Importar validaciones
+      const { validateRegisterForm, formatErrorMessage, capitalizeName } = require('../utils/helpers');
 
-      if (password !== confirmPassword) {
-        throw new Error('Las contraseñas no coinciden');
-      }
-
-      if (password.length < 6) {
-        throw new Error('La contraseña debe tener al menos 6 caracteres');
+      // Validar formulario completo
+      const validation = validateRegisterForm(userData);
+      if (!validation.isValid) {
+        throw new Error(formatErrorMessage(validation.errors));
       }
 
       // Verificar si el email ya existe
-      const existingUser = await User.findByEmail(email.toLowerCase());
+      const existingUser = await User.findByEmail(email.toLowerCase().trim());
       if (existingUser) {
-        throw new Error('El email ya está registrado');
+        throw new Error('El correo electrónico ya está registrado');
       }
 
       // Crear usuario
       const newUser = await User.create({
-        name: name.trim(),
+        name: capitalizeName(name.trim()),
         email: email.toLowerCase().trim(),
         password, // En producción, hashear la contraseña
-        phone: phone?.trim()
+        phone: phone?.trim() || null,
+        recovery_email: null // Se puede configurar después en el perfil
       });
 
       if (!newUser) {
@@ -201,12 +198,27 @@ class UserController {
         throw new Error('No hay usuario autenticado');
       }
 
+      // Validar datos de actualización
+      const { validateProfileForm, formatErrorMessage, formatPhoneNumber } = require('../utils/helpers');
+
+      const validation = validateProfileForm(updateData);
+      if (!validation.isValid) {
+        throw new Error(formatErrorMessage(validation.errors));
+      }
+
       const user = await User.findById(this.currentUser.id);
       if (!user) {
         throw new Error('Usuario no encontrado');
       }
 
-      await user.update(updateData);
+      // Formatear datos antes de guardar
+      const formattedData = {
+        ...updateData,
+        phone: updateData.phone ? formatPhoneNumber(updateData.phone) : null,
+        recovery_email: updateData.recovery_email ? updateData.recovery_email.toLowerCase().trim() : null
+      };
+
+      await user.update(formattedData);
       const updatedProfile = await user.getProfile();
       this.currentUser = updatedProfile;
 
@@ -234,17 +246,17 @@ class UserController {
         throw new Error('No hay usuario autenticado');
       }
 
-      if (newPassword !== confirmPassword) {
-        throw new Error('Las contraseñas no coinciden');
-      }
+      // Validar formulario de cambio de contraseña
+      const { validatePasswordChangeForm, formatErrorMessage } = require('../utils/helpers');
 
-      if (newPassword.length < 6) {
-        throw new Error('La contraseña debe tener al menos 6 caracteres');
+      const validation = validatePasswordChangeForm(currentPassword, newPassword, confirmPassword);
+      if (!validation.isValid) {
+        throw new Error(formatErrorMessage(validation.errors));
       }
 
       const user = await User.findById(this.currentUser.id);
       if (!user || !user.validatePassword(currentPassword)) {
-        throw new Error('Contraseña actual incorrecta');
+        throw new Error('La contraseña actual es incorrecta');
       }
 
       await user.updatePassword(newPassword);
@@ -271,8 +283,8 @@ class UserController {
 
       console.log('UserController: Eliminando usuario', this.currentUser.id);
 
-      const deleteResult = await User.delete(this.currentUser.id); 
-      
+      const deleteResult = await User.delete(this.currentUser.id);
+
       if (!deleteResult) {
       }
 
