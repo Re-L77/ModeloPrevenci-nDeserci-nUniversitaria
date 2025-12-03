@@ -151,14 +151,6 @@ export default function LoginScreen() {
               {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Iniciar Sesión</Text>}
             </TouchableOpacity>
 
-            <View style={styles.registerContainer}>
-              <Text style={styles.registerText}>¿No tienes cuenta? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                <Text style={styles.registerLink}>Regístrate aquí</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* SECCIÓN DE USUARIOS DE DEMOSTRACIÓN */}
             <View style={styles.demoSection}>
               <Text style={styles.demoSectionTitle}>🎯 Usuarios de Demostración</Text>
               <Text style={styles.demoSectionSubtitle}>Datos actualizados en tiempo real</Text>
