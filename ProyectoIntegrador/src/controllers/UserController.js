@@ -44,53 +44,36 @@ class UserController {
 
   // Autenticar usuario con base de datos
   async login(email, password) {
-    console.log('=== LOGIN CON BASE DE DATOS ===');
-    console.log('Email:', email);
-
     try {
       // Validaciones básicas
       if (!email || !password) {
-        console.log('❌ Faltan credenciales');
         return { success: false, message: 'Email y contraseña requeridos' };
       }
 
-      console.log('🔍 Buscando usuario en base de datos...');
       const user = await User.findByEmail(email.toLowerCase());
 
       if (!user) {
-        console.log('❌ Usuario no encontrado');
         return { success: false, message: 'Usuario no encontrado' };
       }
 
-      console.log('✅ Usuario encontrado:', user.name);
-      console.log('🔐 Validando contraseña...');
-
       if (!user.validatePassword(password)) {
-        console.log('❌ Contraseña incorrecta');
         return { success: false, message: 'Contraseña incorrecta' };
       }
-
-      console.log('✅ Credenciales válidas');
 
       // Generar token de autenticación
       this.authToken = `token-${user.id}-${Date.now()}`;
 
       // Obtener perfil completo con datos de estudiante si aplica
-      console.log('📋 Obteniendo perfil completo...');
       const profile = await user.getProfile();
       this.currentUser = profile;
 
-      // Guardar sesión en AsyncStorage
-      try {
-        await AsyncStorage.setItem('authToken', this.authToken);
-        await AsyncStorage.setItem('currentUser', JSON.stringify(this.currentUser));
-        console.log('💾 Sesión guardada exitosamente');
-      } catch (storageError) {
-        console.warn('⚠️ Error guardando sesión:', storageError);
-        // Continuar aunque falle el guardado
-      }
+      // Guardar sesión en AsyncStorage (en paralelo)
+      AsyncStorage.multiSet([
+        ['authToken', this.authToken],
+        ['currentUser', JSON.stringify(this.currentUser)]
+      ]).catch(error => console.warn('Error guardando sesión:', error));
 
-      console.log('🎉 LOGIN EXITOSO para:', this.currentUser.name);
+      console.log('Login exitoso para:', this.currentUser.name);
       return {
         success: true,
         token: this.authToken,

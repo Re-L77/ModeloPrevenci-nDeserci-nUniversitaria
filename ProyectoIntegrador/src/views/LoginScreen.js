@@ -19,16 +19,52 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     console.log('=== HANDLE LOGIN INICIADO ===');
     Keyboard.dismiss();
+
+    if (!email || !password) {
+      Alert.alert('Error', 'Por favor completa todos los campos');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      Alert.alert('Error', 'Formato de email inválido');
+      return;
+    }
+
     setLoading(true);
-    // Simulación rápida para ejemplo:
-    setTimeout(() => {
-        if(email && password) {
-             if(onLogin) onLogin();
-        } else {
-            Alert.alert('Error', 'Llena los campos');
-        }
-        setLoading(false);
-    }, 1000);
+    try {
+      console.log('LoginScreen: Intentando login con:', email);
+      const result = await userController.login(email, password);
+
+      if (result.success && result.user) {
+        console.log('LoginScreen: Login exitoso:', result.user.name);
+        await contextLogin(result.user);
+      } else {
+        Alert.alert('Error', result.message || 'Credenciales incorrectas');
+      }
+    } catch (error) {
+      console.error('LoginScreen: Error en login:', error);
+      Alert.alert('Error', 'Error al iniciar sesión. Intenta de nuevo.');
+    }
+    setLoading(false);
+  };
+
+  const handleDemoLogin = async (demoUser) => {
+    setLoading(true);
+    try {
+      console.log('LoginScreen: Login de demostración:', demoUser.email);
+      const result = await userController.login(demoUser.email, demoUser.password);
+
+      if (result.success && result.user) {
+        console.log('LoginScreen: Demo login exitoso:', result.user.name);
+        await contextLogin(result.user);
+      } else {
+        Alert.alert('Error', result.message || 'Usuario de demostración no encontrado');
+      }
+    } catch (error) {
+      console.error('LoginScreen: Error en demo login:', error);
+      Alert.alert('Error', 'Error al iniciar sesión de demostración');
+    }
+    setLoading(false);
   };
 
   const useDemoCredentials = () => {
@@ -64,11 +100,11 @@ export default function LoginScreen() {
         />
 
         {/* --- BOTÓN QUE ACTIVA LA NAVEGACIÓN EN PILA --- */}
-        <TouchableOpacity 
-            onPress={() => navigation.navigate('ForgotPassword')}
-            style={styles.forgotContainer}
+        <TouchableOpacity
+          onPress={() => navigation.navigate('ForgotPassword')}
+          style={styles.forgotContainer}
         >
-            <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
+          <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -79,9 +115,56 @@ export default function LoginScreen() {
           {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Iniciar Sesión</Text>}
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={useDemoCredentials}>
-          <Text style={styles.demoLink}>Usar credenciales de demostración</Text>
-        </TouchableOpacity>
+        {/* SECCIÓN DE USUARIOS DE DEMOSTRACIÓN */}
+        <View style={styles.demoSection}>
+          <Text style={styles.demoSectionTitle}>🎯 Usuarios de Demostración</Text>
+          <Text style={styles.demoSectionSubtitle}>Haz clic para probar diferentes perfiles</Text>
+
+          <TouchableOpacity
+            style={[styles.demoButton, styles.demoButtonRisk]}
+            onPress={() => handleDemoLogin({ email: 'carlos.rodriguez@universidad.edu', password: 'demo456' })}
+            disabled={loading}
+          >
+            <Text style={styles.demoButtonText}>👨‍🎓 Carlos Rodríguez</Text>
+            <Text style={styles.demoButtonSubtext}>Estudiante - Riesgo Alto</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.demoButton, styles.demoButtonExcellent]}
+            onPress={() => handleDemoLogin({ email: 'maria.garcia@universidad.edu', password: 'demo123' })}
+            disabled={loading}
+          >
+            <Text style={styles.demoButtonText}>👩‍🎓 María García</Text>
+            <Text style={styles.demoButtonSubtext}>Estudiante - Rendimiento Bueno</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.demoButton, styles.demoButtonExcellent]}
+            onPress={() => handleDemoLogin({ email: 'ana.delgado@universidad.edu', password: 'demo789' })}
+            disabled={loading}
+          >
+            <Text style={styles.demoButtonText}>👩‍🎓 Ana Delgado</Text>
+            <Text style={styles.demoButtonSubtext}>Estudiante - Rendimiento Excelente</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.demoButton, styles.demoButtonAdmin]}
+            onPress={() => handleDemoLogin({ email: 'admin@universidad.edu', password: 'admin123' })}
+            disabled={loading}
+          >
+            <Text style={styles.demoButtonText}>👩‍💼 Dr. Ana Martínez</Text>
+            <Text style={styles.demoButtonSubtext}>Administrador</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.demoButton}
+            onPress={() => handleDemoLogin({ email: 'luis.hernandez@universidad.edu', password: 'prof123' })}
+            disabled={loading}
+          >
+            <Text style={styles.demoButtonText}>👨‍🏫 Prof. Luis Hernández</Text>
+            <Text style={styles.demoButtonSubtext}>Profesor/Consejero</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -211,5 +294,19 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     marginTop: 2,
+  },
+  demoLink: {
+    color: '#007AFF',
+    textAlign: 'center',
+    marginTop: 12,
+    fontSize: 14,
+  },
+  forgotContainer: {
+    alignItems: 'flex-end',
+    marginBottom: 8,
+  },
+  forgotText: {
+    color: '#007AFF',
+    fontSize: 14,
   },
 });

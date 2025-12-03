@@ -204,6 +204,62 @@ export default function PantallaPrincipalEstudiante() {
     setAlertas(alertas.filter(alerta => alerta.id !== id));
   };
 
+  const getAlertStyle = (alerta) => {
+    const styles = {
+      critical: {
+        borderColor: '#dc3545', // Rojo crítico
+        iconBg: '#f8d7da',
+        iconColor: '#dc3545',
+        icon: '🚨'
+      },
+      high: {
+        borderColor: '#fd7e14', // Naranja alto
+        iconBg: '#ffeaa7',
+        iconColor: '#fd7e14',
+        icon: '⚠️'
+      },
+      medium: {
+        borderColor: '#ffc107', // Amarillo medio
+        iconBg: '#fff3cd',
+        iconColor: '#ffc107',
+        icon: '⚠'
+      },
+      low: {
+        borderColor: '#17a2b8', // Azul bajo
+        iconBg: '#d1ecf1',
+        iconColor: '#17a2b8',
+        icon: 'ℹ️'
+      },
+      info: {
+        borderColor: '#6f42c1', // Púrpura info
+        iconBg: '#e2d9f3',
+        iconColor: '#6f42c1',
+        icon: '💡'
+      }
+    };
+
+    // Determinar estilo por severidad primero, luego por tipo
+    let alertStyle = styles.medium; // Por defecto
+
+    if (alerta.severity && styles[alerta.severity]) {
+      alertStyle = styles[alerta.severity];
+    } else if (alerta.type) {
+      // Mapear tipos a severidades
+      const typeMapping = {
+        'attendance': 'high',
+        'grades': 'medium',
+        'academic': 'medium',
+        'financial': 'critical',
+        'administrative': 'low',
+        'general': 'info'
+      };
+      const mappedSeverity = typeMapping[alerta.type] || 'medium';
+      alertStyle = styles[mappedSeverity];
+    }
+
+    return alertStyle;
+  };
+
 
 
   return (
@@ -227,20 +283,25 @@ export default function PantallaPrincipalEstudiante() {
 
           {alertas.filter(a => a.visible).length > 0 && (
             <View style={styles.alertsContainer}>
-              {alertas.filter(a => a.visible).map((alerta) => (
-                <View key={alerta.id} style={styles.alertCard}>
-                  <View style={styles.alertIcon}>
-                    <Text style={styles.alertIconText}>⚠</Text>
+              {alertas.filter(a => a.visible).map((alerta) => {
+                const alertStyle = getAlertStyle(alerta);
+                return (
+                  <View key={alerta.id} style={[styles.alertCard, { borderLeftColor: alertStyle.borderColor }]}>
+                    <View style={[styles.alertIcon, { backgroundColor: alertStyle.iconBg }]}>
+                      <Text style={[styles.alertIconText, { color: alertStyle.iconColor }]}>
+                        {alertStyle.icon}
+                      </Text>
+                    </View>
+                    <View style={styles.alertContent}>
+                      <Text style={styles.alertTitle}>{alerta.title}</Text>
+                      <Text style={styles.alertMessage}>{alerta.message}</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => eliminarAlerta(alerta.id)} style={styles.dismissButton}>
+                      <Text style={styles.dismissText}>✕</Text>
+                    </TouchableOpacity>
                   </View>
-                  <View style={styles.alertContent}>
-                    <Text style={styles.alertTitle}>{alerta.title}</Text>
-                    <Text style={styles.alertMessage}>{alerta.message}</Text>
-                  </View>
-                  <TouchableOpacity onPress={() => eliminarAlerta(alerta.id)} style={styles.dismissButton}>
-                    <Text style={styles.dismissText}>✕</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
+                );
+              })}
             </View>
           )}
 
@@ -473,7 +534,6 @@ const styles = StyleSheet.create({
   alertCard: {
     backgroundColor: '#fff',
     borderLeftWidth: 4,
-    borderLeftColor: '#ff6b6b',
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,
@@ -485,17 +545,15 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   alertIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#ffe0e0',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   alertIconText: {
-    fontSize: 16,
-    color: '#ff6b6b',
+    fontSize: 18,
   },
   alertContent: {
     flex: 1,

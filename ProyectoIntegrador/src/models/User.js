@@ -53,13 +53,13 @@ class User {
     static async findByEmail(email) {
         try {
             const result = await getQueryResult(
-                'SELECT * FROM users WHERE email = ?',
+                'SELECT * FROM users WHERE email = ? LIMIT 1',
                 [email]
             );
             return result ? new User(result) : null;
         } catch (error) {
             console.error('Error finding user by email:', error);
-            throw error;
+            return null; // Fallback más rápido
         }
     }
 
@@ -147,16 +147,18 @@ class User {
 
             if (this.role === 'student') {
                 const studentData = await getQueryResult(
-                    'SELECT * FROM students WHERE user_id = ?',
+                    'SELECT * FROM students WHERE user_id = ? LIMIT 1',
                     [this.id]
                 );
-                profile.student = studentData;
+                if (studentData) {
+                    profile.student = studentData;
+                }
             }
 
             return profile;
         } catch (error) {
             console.error('Error getting user profile:', error);
-            throw error;
+            return this.toSafeObject(); // Fallback sin datos de estudiante
         }
     }
 }
