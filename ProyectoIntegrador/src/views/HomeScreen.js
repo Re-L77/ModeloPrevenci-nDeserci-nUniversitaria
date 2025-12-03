@@ -399,9 +399,7 @@ export default function PantallaPrincipalEstudiante() {
           <View style={styles.section}>
             <View style={[styles.sectionHeader, { marginHorizontal: 20 }]}>
               <Text style={styles.sectionTitle}>📚 Recursos Recientes</Text>
-              <TouchableOpacity>
-                <Text style={styles.linkText}>Ver todos →</Text>
-              </TouchableOpacity>
+
             </View>
 
             {recursos.map((resource) => (

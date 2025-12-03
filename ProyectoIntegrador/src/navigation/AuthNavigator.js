@@ -20,18 +20,14 @@ const AuthNavigator = () => {
                 name="Login"
                 component={LoginScreen}
             />
-            
+
             <Stack.Screen
                 name="ForgotPassword"
                 component={ForgotPasswordScreen}
                 options={{
-                    // --- AQUÍ ESTÁ EL TRUCO ---
-                    headerShown: true,           // 1. Muestra la barra arriba
-                    title: 'Recuperar',          // 2. Título de la barra
-                    headerTintColor: '#007AFF',  // 3. Color de la flecha y texto (Azul)
-                    headerTransparent: true,     // 4. (Opcional) Hace que el fondo sea transparente
-                    headerTitleStyle: { color: 'transparent' }, // (Opcional) Si solo quieres la flecha, descomenta esto
-                    animation: 'slide_from_right'
+                    headerShown: true,
+                    title: 'Recuperar Contraseña',
+                    headerTintColor: '#007AFF',
                 }}
             />
         </Stack.Navigator>
