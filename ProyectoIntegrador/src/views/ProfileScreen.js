@@ -64,22 +64,22 @@ const ProfileScreen = ({ navigation }) => {
                 </View>
                 <Text style={styles.userName}>{currentUser?.name || 'Usuario'}</Text>
                 <Text style={styles.userCareer}>
-                    {currentUser?.student?.career || 
-                     (currentUser?.role === 'admin' ? 'Administrador' : 
-                      currentUser?.role === 'teacher' ? 'Profesor' : 'Usuario')}
+                    {currentUser?.student?.career ||
+                        (currentUser?.role === 'admin' ? 'Administrador' :
+                            currentUser?.role === 'teacher' ? 'Profesor' : 'Usuario')}
                 </Text>
                 <Text style={[
                     styles.userStatus,
                     currentUser?.student?.risk_level === 'critical' ? styles.riskCritical :
-                    currentUser?.student?.risk_level === 'high' ? styles.riskHigh :
-                    currentUser?.student?.risk_level === 'medium' ? styles.riskMedium :
-                    styles.riskLow
+                        currentUser?.student?.risk_level === 'high' ? styles.riskHigh :
+                            currentUser?.student?.risk_level === 'medium' ? styles.riskMedium :
+                                styles.riskLow
                 ]}>
                     {currentUser?.student?.risk_level === 'low' ? '✅ Bajo Riesgo' :
-                     currentUser?.student?.risk_level === 'medium' ? '⚠️ Riesgo Medio' :
-                     currentUser?.student?.risk_level === 'high' ? '🔴 Alto Riesgo' :
-                     currentUser?.student?.risk_level === 'critical' ? '🚨 Riesgo Crítico' :
-                     '✅ Estado Normal'}
+                        currentUser?.student?.risk_level === 'medium' ? '⚠️ Riesgo Medio' :
+                            currentUser?.student?.risk_level === 'high' ? '🔴 Alto Riesgo' :
+                                currentUser?.student?.risk_level === 'critical' ? '🚨 Riesgo Crítico' :
+                                    '✅ Estado Normal'}
                 </Text>
             </View>
 
@@ -110,8 +110,8 @@ const ProfileScreen = ({ navigation }) => {
                     <Text style={styles.infoLabel}>Tipo de Usuario</Text>
                     <Text style={styles.infoValue}>
                         {currentUser?.role === 'student' ? 'Estudiante' :
-                         currentUser?.role === 'admin' ? 'Administrador' :
-                         currentUser?.role === 'teacher' ? 'Profesor' : 'Usuario'}
+                            currentUser?.role === 'admin' ? 'Administrador' :
+                                currentUser?.role === 'teacher' ? 'Profesor' : 'Usuario'}
                     </Text>
                 </View>
 
