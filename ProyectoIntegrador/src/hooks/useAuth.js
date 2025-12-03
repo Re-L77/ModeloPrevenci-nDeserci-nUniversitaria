@@ -10,8 +10,8 @@ export const useAuthLogic = () => {
     useEffect(() => {
         checkAuthStatus();
 
-        // Verificar el estado periódicamente para detectar cambios
-        const interval = setInterval(checkAuthStatus, 1000);
+        // Verificar el estado menos frecuentemente para evitar conflictos
+        const interval = setInterval(checkAuthStatus, 3000);
 
         return () => clearInterval(interval);
     }, []);
@@ -27,13 +27,17 @@ export const useAuthLogic = () => {
                     setIsAuthenticated(true);
                 }
             } else {
-                if (isAuthenticated) {
+                // Si no hay autenticación válida, limpiar estado
+                if (isAuthenticated || currentUser) {
                     setCurrentUser(null);
                     setIsAuthenticated(false);
                 }
             }
         } catch (error) {
             console.error('Error verificando estado de autenticación:', error);
+            // En caso de error, limpiar estado por seguridad
+            setCurrentUser(null);
+            setIsAuthenticated(false);
         } finally {
             if (loading) {
                 setLoading(false);
@@ -84,10 +88,16 @@ export const useAuthLogic = () => {
 
     const logout = async () => {
         try {
+            console.log('Hook useAuth: Iniciando logout...');
             await userController.logout();
-            // El estado se actualizará automáticamente en el siguiente ciclo
+
+            // Forzar actualización inmediata del estado
+            setCurrentUser(null);
+            setIsAuthenticated(false);
+            console.log('Hook useAuth: Logout completado, estado actualizado');
+
         } catch (error) {
-            console.error('Error durante logout:', error);
+            console.error('Hook useAuth: Error durante logout:', error);
             // Forzar logout local aunque falle
             setCurrentUser(null);
             setIsAuthenticated(false);

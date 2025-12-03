@@ -85,15 +85,23 @@ class UserController {
   // Cerrar sesión
   async logout() {
     try {
+      console.log('UserController: Iniciando logout...');
+
+      // Limpiar estado interno primero
       this.currentUser = null;
       this.authToken = null;
 
+      // Limpiar AsyncStorage
       await AsyncStorage.removeItem('authToken');
       await AsyncStorage.removeItem('currentUser');
 
+      console.log('UserController: Logout completado exitosamente');
       return { success: true };
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('UserController: Logout error:', error);
+      // Asegurar que el estado se limpia aunque falle AsyncStorage
+      this.currentUser = null;
+      this.authToken = null;
       return { success: false, message: error.message };
     }
   }
