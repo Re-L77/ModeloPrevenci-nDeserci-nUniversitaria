@@ -77,11 +77,21 @@ export const initializeDatabase = async () => {
                 type TEXT NOT NULL,
                 url TEXT,
                 category TEXT,
+                career_specific TEXT,
+                file_size TEXT,
                 is_active BOOLEAN DEFAULT 1,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         `);
+
+        // Agregar columnas career_specific y file_size si no existen
+        try {
+            await database.execAsync('ALTER TABLE resources ADD COLUMN career_specific TEXT;');
+            await database.execAsync('ALTER TABLE resources ADD COLUMN file_size TEXT;');
+        } catch (error) {
+            // Las columnas ya existen
+        }
 
         // Insertar datos de prueba si no existen
         await insertDemoData();
@@ -176,78 +186,82 @@ const insertDemoData = async () => {
             [3, 'general', 'Oportunidad de Beca', 'Calificas para la beca de excelencia académica', 'low']
         );
 
-        // === RECURSOS DEMO ===
+        // === RECURSOS ACADÉMICOS POR CARRERA ===
 
-        // Recursos académicos
+        // Recursos para Ingeniería de Sistemas
         await database.runAsync(
-            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
-            ['Tutorías de Matemáticas', 'Apoyo académico gratuito para materias de matemáticas y cálculo', 'academic', 'tutoring', 'https://universidad.edu/tutorias']
+            'INSERT INTO resources (title, description, type, category, career_specific, file_size, url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            ['Guía de Normalización de BD', 'Ejercicios prácticos de normalización de bases de datos relacionales', 'document', 'academic', 'Ingeniería de Sistemas', '2.5 MB', 'https://universidad.edu/recursos/bd-normalizacion.pdf']
         );
 
         await database.runAsync(
-            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
-            ['Centro de Escritura', 'Apoyo para redacción de ensayos y trabajos académicos', 'academic', 'tutoring', 'https://universidad.edu/escritura']
+            'INSERT INTO resources (title, description, type, category, career_specific, file_size, url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            ['Tutorial: React Hooks Avanzados', 'Video tutorial completo sobre useState, useEffect y hooks personalizados', 'video', 'academic', 'Ingeniería de Sistemas', '145 MB', 'https://universidad.edu/videos/react-hooks']
         );
 
         await database.runAsync(
-            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
-            ['Laboratorio de Informática', 'Acceso libre a computadores y software especializado', 'academic', 'technology', 'https://universidad.edu/laboratorio']
-        );
-
-        // Recursos de bienestar
-        await database.runAsync(
-            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
-            ['Bienestar Estudiantil', 'Servicios de apoyo psicológico y social', 'support', 'wellness', 'https://universidad.edu/bienestar']
+            'INSERT INTO resources (title, description, type, category, career_specific, file_size, url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            ['Ejercicios de Algoritmos', 'Colección de ejercicios resueltos de algoritmos y estructuras de datos', 'document', 'academic', 'Ingeniería de Sistemas', '3.2 MB', 'https://universidad.edu/recursos/algoritmos.pdf']
         );
 
         await database.runAsync(
-            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
-            ['Consejería Académica', 'Orientación personalizada para tu plan de estudios', 'support', 'counseling', 'https://universidad.edu/consejeria']
+            'INSERT INTO resources (title, description, type, category, career_specific, file_size, url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            ['Laboratorio de Programación', 'Acceso a entornos de desarrollo y servidores para prácticas', 'tool', 'laboratory', 'Ingeniería de Sistemas', '-', 'https://lab.universidad.edu']
+        );
+
+        // Recursos para Ingeniería Industrial
+        await database.runAsync(
+            'INSERT INTO resources (title, description, type, category, career_specific, file_size, url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            ['Manual de Investigación Operativa', 'Guía completa de métodos de optimización y programación lineal', 'document', 'academic', 'Ingeniería Industrial', '4.1 MB', 'https://universidad.edu/recursos/investigacion-operativa.pdf']
         );
 
         await database.runAsync(
-            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
-            ['Programa de Mentorías', 'Conexión con estudiantes de semestres avanzados', 'support', 'mentoring', 'https://universidad.edu/mentorias']
-        );
-
-        // Recursos financieros
-        await database.runAsync(
-            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
-            ['Oficina Financiera', 'Información sobre becas, créditos y ayudas económicas', 'financial', 'aid', 'https://universidad.edu/financiera']
+            'INSERT INTO resources (title, description, type, category, career_specific, file_size, url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            ['Simulación de Procesos Industriales', 'Video tutorial sobre simulación con Arena y optimización de procesos', 'video', 'academic', 'Ingeniería Industrial', '230 MB', 'https://universidad.edu/videos/simulacion-arena']
         );
 
         await database.runAsync(
-            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
-            ['Programa Trabajo-Estudio', 'Oportunidades de empleo dentro del campus', 'financial', 'employment', 'https://universidad.edu/trabajo-estudio']
+            'INSERT INTO resources (title, description, type, category, career_specific, file_size, url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            ['Casos de Estudio: Lean Manufacturing', 'Análisis de casos reales de implementación de metodologías Lean', 'document', 'academic', 'Ingeniería Industrial', '2.8 MB', 'https://universidad.edu/recursos/lean-manufacturing.pdf']
         );
 
-        // Recursos de desarrollo profesional
+        // Recursos para Administración de Empresas
         await database.runAsync(
-            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
-            ['Centro de Carrera', 'Preparación para entrevistas y búsqueda de empleo', 'career', 'development', 'https://universidad.edu/carrera']
-        );
-
-        await database.runAsync(
-            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
-            ['Prácticas Profesionales', 'Conexión con empresas para experiencia laboral', 'career', 'internships', 'https://universidad.edu/practicas']
-        );
-
-        // Recursos de salud
-        await database.runAsync(
-            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
-            ['Centro Médico', 'Servicios básicos de salud para estudiantes', 'health', 'medical', 'https://universidad.edu/salud']
+            'INSERT INTO resources (title, description, type, category, career_specific, file_size, url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            ['Plan de Negocios: Plantilla', 'Plantilla estructurada para desarrollo de planes de negocio', 'document', 'academic', 'Administración de Empresas', '1.5 MB', 'https://universidad.edu/recursos/plan-negocios.docx']
         );
 
         await database.runAsync(
-            'INSERT INTO resources (title, description, type, category, url) VALUES (?, ?, ?, ?, ?)',
-            ['Programa de Actividad Física', 'Gimnasio y clases deportivas para estudiantes', 'health', 'fitness', 'https://universidad.edu/deportes']
+            'INSERT INTO resources (title, description, type, category, career_specific, file_size, url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            ['Análisis Financiero Empresarial', 'Video tutorial sobre análisis de estados financieros y ratios', 'video', 'academic', 'Administración de Empresas', '180 MB', 'https://universidad.edu/videos/analisis-financiero']
+        );
+
+        await database.runAsync(
+            'INSERT INTO resources (title, description, type, category, career_specific, file_size, url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            ['Casos Harvard Business School', 'Colección de casos de estudio para análisis estratégico', 'document', 'academic', 'Administración de Empresas', '5.2 MB', 'https://universidad.edu/recursos/casos-harvard.pdf']
+        );
+
+        // Recursos generales para todos
+        await database.runAsync(
+            'INSERT INTO resources (title, description, type, category, career_specific, file_size, url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            ['Bienestar Estudiantil', 'Servicios de apoyo psicológico y social para todos los estudiantes', 'support', 'wellness', 'general', '-', 'https://universidad.edu/bienestar']
+        );
+
+        await database.runAsync(
+            'INSERT INTO resources (title, description, type, category, career_specific, file_size, url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            ['Centro de Prácticas Profesionales', 'Conexión con empresas para experiencia laboral en todas las carreras', 'support', 'internships', 'general', '-', 'https://universidad.edu/practicas']
+        );
+
+        await database.runAsync(
+            'INSERT INTO resources (title, description, type, category, career_specific, file_size, url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            ['Oficina de Apoyo Financiero', 'Información sobre becas, créditos y ayudas económicas', 'support', 'financial', 'general', '-', 'https://universidad.edu/financiera']
         );
 
         console.log('✅ Datos de demostración insertados:');
         console.log('👤 3 usuarios estudiantes creados');
         console.log('🎓 3 estudiantes con diferentes niveles de riesgo');
         console.log('🚨 6 alertas de ejemplo');
-        console.log('📚 12 recursos educativos');
+        console.log('📚 15 recursos educativos específicos por carrera');
     } catch (error) {
         console.error('Error insertando datos demo:', error);
     }

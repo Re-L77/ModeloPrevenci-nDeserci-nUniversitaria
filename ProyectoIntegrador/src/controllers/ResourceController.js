@@ -203,6 +203,45 @@ class ResourceController {
         }
     }
 
+    // Obtener recursos por carrera
+    async getResourcesByCareer(career, activeOnly = true) {
+        try {
+            console.log('ResourceController: Obteniendo recursos para carrera:', career);
+            const cacheKey = `resources-career-${career}-${activeOnly}`;
+            const cached = this.cache.get(cacheKey);
+
+            if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+                return {
+                    success: true,
+                    data: cached.data
+                };
+            }
+
+            const resources = await Resource.findByCareer(career, activeOnly);
+
+            // Cache del resultado
+            this.cache.set(cacheKey, {
+                data: resources,
+                timestamp: Date.now()
+            });
+
+            return {
+                success: true,
+                data: resources,
+                count: resources.length,
+                career: career,
+                message: `${resources.length} recursos encontrados para ${career}`
+            };
+        } catch (error) {
+            console.error('ResourceController: Error obteniendo recursos por carrera:', error);
+            return {
+                success: false,
+                data: [],
+                message: 'Error al obtener los recursos por carrera'
+            };
+        }
+    }
+
     // Buscar recursos
     async searchResources(searchTerm, limit = 20, activeOnly = true) {
         try {

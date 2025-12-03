@@ -26,7 +26,15 @@ const ResourcesScreen = () => {
         const loadResources = async () => {
             try {
                 console.log('ResourcesScreen: Cargando recursos...');
-                const result = await resourceController.getAllResources();
+
+                let result;
+                // Si el usuario tiene carrera, filtrar por carrera
+                if (currentUser?.student?.career) {
+                    console.log('ResourcesScreen: Filtrando por carrera:', currentUser.student.career);
+                    result = await resourceController.getResourcesByCareer(currentUser.student.career);
+                } else {
+                    result = await resourceController.getAllResources();
+                }
 
                 if (result.success) {
                     console.log('ResourcesScreen: Recursos cargados:', result.data.length);
@@ -35,15 +43,16 @@ const ResourcesScreen = () => {
                         id: resource.id.toString(),
                         type: mapResourceType(resource.type),
                         title: resource.title,
-                        subject: resource.category || 'General',
+                        subject: resource.career_specific === 'general' ? 'General' : (resource.career_specific || 'General'),
                         date: formatDate(resource.created_at),
-                        fileSize: '2.5 MB', // Placeholder
+                        fileSize: resource.file_size || '2.5 MB',
                         tags: [resource.type, mapResourceType(resource.type)],
                         icon: getResourceIcon(resource.type),
                         iconBg: getResourceIconBg(resource.type),
                         iconColor: getResourceIconColor(resource.type),
                         url: resource.url,
-                        description: resource.description
+                        description: resource.description,
+                        isCareerSpecific: resource.career_specific !== 'general'
                     }));
                     setResourcesData(resourcesUI);
                 } else {
@@ -61,7 +70,7 @@ const ResourcesScreen = () => {
         };
 
         loadResources();
-    }, []);
+    }, [currentUser]);
 
     // Funciones helper
     const mapResourceType = (type) => {
@@ -241,9 +250,9 @@ const ResourcesScreen = () => {
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
                 <View>
-                    <Text style={styles.greeting}>Buenas noches, María!</Text>
+                    <Text style={styles.greeting}>Hola, {currentUser?.name?.split(' ')[0] || 'Estudiante'}!</Text>
                     <Text style={styles.subtitle}>
-                        Material de estudio, tutorías y más
+                        {currentUser?.student?.career ? `Recursos para ${currentUser.student.career}` : 'Material de estudio, tutorías y más'}
                     </Text>
                 </View>
             </View>

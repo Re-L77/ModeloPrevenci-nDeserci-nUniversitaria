@@ -10,6 +10,8 @@ class Resource {
         this.type = data.type || 'general';
         this.url = data.url || null;
         this.category = data.category || 'general';
+        this.career_specific = data.career_specific || 'general';
+        this.file_size = data.file_size || null;
         this.is_active = data.is_active !== undefined ? data.is_active : true;
         this.created_at = data.created_at || null;
         this.updated_at = data.updated_at || null;
@@ -113,6 +115,27 @@ class Resource {
             return results.map(data => new Resource(data));
         } catch (error) {
             console.error('Error finding resources by category:', error);
+            throw error;
+        }
+    }
+
+    // Obtener recursos por carrera
+    static async findByCareer(career, activeOnly = true) {
+        try {
+            let query = 'SELECT * FROM resources WHERE (career_specific = ? OR career_specific = "general")';
+            let params = [career];
+
+            if (activeOnly) {
+                query += ' AND is_active = 1';
+            }
+
+            query += ' ORDER BY career_specific = ? DESC, created_at DESC';
+            params.push(career);
+
+            const results = await getQueryResults(query, params);
+            return results.map(data => new Resource(data));
+        } catch (error) {
+            console.error('Error finding resources by career:', error);
             throw error;
         }
     }
