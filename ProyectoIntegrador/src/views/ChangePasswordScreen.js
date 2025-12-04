@@ -13,6 +13,37 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../navigation/RootNavigator';
 import userController from '../controllers/UserController';
 
+const PasswordInput = ({ icon, placeholder, value, onChangeText, showPassword, onTogglePassword }) => (
+    <View style={styles.passwordInputContainer}>
+        <Ionicons name={icon} size={20} color="#8E8E93" style={styles.inputIcon} />
+        <TextInput
+            style={styles.input}
+            placeholder={placeholder}
+            secureTextEntry={!showPassword}
+            value={value}
+            onChangeText={onChangeText}
+            placeholderTextColor="#8E8E93"
+            editable={true}
+            autoComplete="off"
+            autoCorrect={false}
+            autoCapitalize="none"
+            textContentType="none"
+            passwordRules=""
+            importantForAutofill="no"
+        />
+        <TouchableOpacity
+            onPress={onTogglePassword}
+            style={styles.eyeIcon}
+        >
+            <Ionicons
+                name={showPassword ? 'eye' : 'eye-off'}
+                size={20}
+                color="#8E8E93"
+            />
+        </TouchableOpacity>
+    </View>
+);
+
 // Vista de Cambio de Contraseña
 const ChangePasswordScreen = ({ navigation }) => {
     const { logout } = useAuth();
@@ -31,17 +62,17 @@ const ChangePasswordScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(false);
 
     const handleInputChange = (field, value) => {
-        setPasswordData({
-            ...passwordData,
+        setPasswordData(prev => ({
+            ...prev,
             [field]: value,
-        });
+        }));
     };
 
     const togglePasswordVisibility = (field) => {
-        setShowPasswords({
-            ...showPasswords,
-            [field]: !showPasswords[field],
-        });
+        setShowPasswords(prev => ({
+            ...prev,
+            [field]: !prev[field],
+        }));
     };
 
     const validatePasswords = () => {
@@ -116,49 +147,6 @@ const ChangePasswordScreen = ({ navigation }) => {
         }
     };
 
-    const PasswordInput = ({ icon, placeholder, value, field, showPassword }) => (
-        <View style={styles.passwordInputContainer}>
-            <Ionicons name={icon} size={20} color="#8E8E93" style={styles.inputIcon} />
-            <TextInput
-                style={styles.input}
-                placeholder={placeholder}
-                secureTextEntry={!showPassword}
-                value={value}
-                onChangeText={(text) => {
-                    console.log(`Cambiando ${field}:`, text);
-                    setPasswordData(prev => ({
-                        ...prev,
-                        [field]: text
-                    }));
-                }}
-                placeholderTextColor="#8E8E93"
-                editable={true}
-                autoComplete="off"
-                autoCorrect={false}
-                autoCapitalize="none"
-                textContentType="none"
-                passwordRules=""
-                importantForAutofill="no"
-            />
-            <TouchableOpacity
-                onPress={() => {
-                    console.log(`Toggling visibility for ${field}`);
-                    setShowPasswords(prev => ({
-                        ...prev,
-                        [field]: !prev[field]
-                    }));
-                }}
-                style={styles.eyeIcon}
-            >
-                <Ionicons
-                    name={showPassword ? 'eye' : 'eye-off'}
-                    size={20}
-                    color="#8E8E93"
-                />
-            </TouchableOpacity>
-        </View>
-    );
-
     return (
         <View style={styles.container}>
             <ScrollView
@@ -176,8 +164,9 @@ const ChangePasswordScreen = ({ navigation }) => {
                             icon="lock-closed"
                             placeholder="Contraseña Actual"
                             value={passwordData.currentPassword}
-                            field="currentPassword"
+                            onChangeText={(text) => handleInputChange('currentPassword', text)}
                             showPassword={showPasswords.currentPassword}
+                            onTogglePassword={() => togglePasswordVisibility('currentPassword')}
                         />
 
                         <View style={styles.divider} />
@@ -186,8 +175,9 @@ const ChangePasswordScreen = ({ navigation }) => {
                             icon="lock-open"
                             placeholder="Nueva Contraseña"
                             value={passwordData.newPassword}
-                            field="newPassword"
+                            onChangeText={(text) => handleInputChange('newPassword', text)}
                             showPassword={showPasswords.newPassword}
+                            onTogglePassword={() => togglePasswordVisibility('newPassword')}
                         />
 
                         <Text style={styles.passwordHint}>
@@ -200,8 +190,9 @@ const ChangePasswordScreen = ({ navigation }) => {
                             icon="lock-open"
                             placeholder="Confirmar Contraseña"
                             value={passwordData.confirmPassword}
-                            field="confirmPassword"
+                            onChangeText={(text) => handleInputChange('confirmPassword', text)}
                             showPassword={showPasswords.confirmPassword}
+                            onTogglePassword={() => togglePasswordVisibility('confirmPassword')}
                         />
                     </View>
 
