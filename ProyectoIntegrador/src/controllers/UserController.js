@@ -255,11 +255,31 @@ class UserController {
       }
 
       const user = await User.findById(this.currentUser.id);
-      if (!user || !user.validatePassword(currentPassword)) {
+      console.log('Change password: Usuario encontrado:', user ? user.email : 'No encontrado');
+      console.log('Change password: Contraseña actual ingresada:', currentPassword);
+      console.log('Change password: Contraseña almacenada:', user ? user.password : 'N/A');
+      console.log('Change password: Usuario actual en memoria:', this.currentUser ? this.currentUser.email : 'No hay usuario');
+
+      if (!user) {
+        throw new Error('Usuario no encontrado');
+      }
+
+      // Verificar contraseña con trimming por seguridad
+      const trimmedCurrentPassword = currentPassword.trim();
+      const storedPassword = user.password.trim();
+
+      if (trimmedCurrentPassword !== storedPassword) {
+        console.log('Change password: Validación falló - contraseñas no coinciden');
+        console.log('Change password: Ingresada (trimmed):', trimmedCurrentPassword);
+        console.log('Change password: Almacenada (trimmed):', storedPassword);
         throw new Error('La contraseña actual es incorrecta');
       }
 
+      console.log('Change password: Validación exitosa, actualizando contraseña...');
       await user.updatePassword(newPassword);
+
+      // Actualizar usuario en memoria
+      this.currentUser = await User.findById(this.currentUser.id);
 
       return {
         success: true,

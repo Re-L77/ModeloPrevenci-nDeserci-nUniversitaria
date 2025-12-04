@@ -101,6 +101,9 @@ const ChangePasswordScreen = ({ navigation }) => {
 
         try {
             console.log('ChangePasswordScreen: Cambiando contraseña...');
+            console.log('ChangePasswordScreen: Contraseña actual ingresada:', passwordData.currentPassword);
+            console.log('ChangePasswordScreen: Nueva contraseña:', passwordData.newPassword);
+            console.log('ChangePasswordScreen: Confirmar contraseña:', passwordData.confirmPassword);
 
             const result = await userController.changePassword(
                 passwordData.currentPassword,
@@ -118,12 +121,7 @@ const ChangePasswordScreen = ({ navigation }) => {
                             onPress: async () => {
                                 // Cerrar sesión automáticamente
                                 await logout();
-                                if (navigation) {
-                                    navigation.reset({
-                                        index: 0,
-                                        routes: [{ name: 'Auth' }],
-                                    });
-                                }
+                                // No usar reset aquí, el logout ya maneja la navegación
                             },
                         },
                     ],

@@ -2,11 +2,39 @@ import * as SQLite from 'expo-sqlite';
 
 // Configuración de base de datos SQLite
 let database = null;
+let dbInitializing = false;
+let dbInitialized = false;
+
+// Esperar hasta que la base de datos esté lista
+const waitForDatabaseReady = async (timeout = 10000) => {
+    const startTime = Date.now();
+    while (!dbInitialized && !database) {
+        if (Date.now() - startTime > timeout) {
+            throw new Error('Timeout esperando inicialización de base de datos');
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+};
 
 // Inicializar base de datos y crear tablas
 export const initializeDatabase = async () => {
     try {
+        if (dbInitializing) {
+            console.log('Base de datos ya está inicializando, esperando...');
+            await waitForDatabaseReady();
+            return database;
+        }
+
+        if (dbInitialized && database) {
+            console.log('Base de datos ya fue inicializada');
+            return database;
+        }
+
+        dbInitializing = true;
+        console.log('🔧 Inicializando base de datos...');
+
         database = await SQLite.openDatabaseAsync('university.db');
+        console.log('✅ Conexión a base de datos abierta');
 
         // Crear tabla de usuarios
         await database.execAsync(`
@@ -23,6 +51,7 @@ export const initializeDatabase = async () => {
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         `);
+        console.log('✅ Tabla users creada');
 
         // Agregar columna recovery_email si no existe (para bases de datos existentes)
         try {
@@ -51,6 +80,7 @@ export const initializeDatabase = async () => {
                 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             );
         `);
+        console.log('✅ Tabla students creada');
 
         // Crear tabla de alertas
         await database.execAsync(`
@@ -67,6 +97,7 @@ export const initializeDatabase = async () => {
                 FOREIGN KEY (student_id) REFERENCES students (id) ON DELETE CASCADE
             );
         `);
+        console.log('✅ Tabla alerts creada');
 
         // Crear tabla de recursos
         await database.execAsync(`
@@ -84,22 +115,30 @@ export const initializeDatabase = async () => {
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         `);
+        console.log('✅ Tabla resources creada');
 
-        // Agregar columnas career_specific y file_size si no existen
+        // Agregar columnas si no existen
         try {
             await database.execAsync('ALTER TABLE resources ADD COLUMN career_specific TEXT;');
-            await database.execAsync('ALTER TABLE resources ADD COLUMN file_size TEXT;');
         } catch (error) {
-            // Las columnas ya existen
+            // La columna ya existe
         }
 
-        // Insertar datos de prueba si no existen
+        try {
+            await database.execAsync('ALTER TABLE resources ADD COLUMN file_size TEXT;');
+        } catch (error) {
+            // La columna ya existe
+        }
+
+        // Insertar datos de demostración
         await insertDemoData();
 
-        console.log('Base de datos inicializada correctamente');
+        dbInitialized = true;
+        console.log('✅ Base de datos inicializada correctamente');
         return database;
     } catch (error) {
-        console.error('Error inicializando base de datos:', error);
+        dbInitializing = false;
+        console.error('❌ Error inicializando base de datos:', error);
         throw error;
     }
 };
@@ -107,49 +146,37 @@ export const initializeDatabase = async () => {
 // Insertar datos de demostración
 const insertDemoData = async () => {
     try {
-        // Verificar si ya existen datos
+        // Verificar si ya existen datos - usar las funciones publicas
         const userCount = await database.getFirstAsync('SELECT COUNT(*) as count FROM users');
-        if (userCount.count > 0) return;
+        if (userCount && userCount.count > 0) {
+            console.log('ℹ️ Datos de demostración ya existen, omitiendo inserción');
+            return;
+        }
 
-        // === USUARIOS DEMO ===
-
-        // Estudiante con rendimiento promedio
-        const mariaResult = await database.runAsync(
-            'INSERT INTO users (name, email, password, role, phone, recovery_email) VALUES (?, ?, ?, ?, ?, ?)',
-            ['María García López', 'maria.garcia@universidad.edu', 'demo123', 'student', '+57 300 123 4567', 'maria.personal@gmail.com']
-        );
-
-        // Estudiante en riesgo académico
-        const carlosResult = await database.runAsync(
-            'INSERT INTO users (name, email, password, role, phone, recovery_email) VALUES (?, ?, ?, ?, ?, ?)',
-            ['Carlos Rodríguez Pérez', 'carlos.rodriguez@universidad.edu', 'demo456', 'student', '+57 301 234 5678', 'carlos.backup@hotmail.com']
-        );
-
-        // Estudiante destacado
-        const anaResult = await database.runAsync(
-            'INSERT INTO users (name, email, password, role, phone, recovery_email) VALUES (?, ?, ?, ?, ?, ?)',
-            ['Ana Sofia Delgado', 'ana.delgado@universidad.edu', 'demo789', 'student', '+57 304 567 8901', 'ana.personal@outlook.com']
-        );
+        console.log('📝 Insertando datos de demostración...');
 
         // === DATOS ACADÉMICOS DE ESTUDIANTES ===
 
-        // María - Rendimiento promedio
+        // María - Rendimiento promedio (ID: 1)
         await database.runAsync(
             'INSERT INTO students (user_id, student_code, career, semester, gpa, risk_level, enrollment_date, academic_credits, failed_subjects, absences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [mariaResult.lastInsertRowId, 'EST001', 'Ingeniería de Sistemas', 6, 3.8, 'low', '2022-01-15', 120, 2, 5]
+            [1, 'EST001', 'Ingeniería de Sistemas', 6, 3.8, 'low', '2022-01-15', 120, 2, 5]
         );
+        console.log('✅ Estudiante María insertado');
 
-        // Carlos - En riesgo académico
+        // Carlos - En riesgo académico (ID: 2)
         await database.runAsync(
             'INSERT INTO students (user_id, student_code, career, semester, gpa, risk_level, enrollment_date, academic_credits, failed_subjects, absences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [carlosResult.lastInsertRowId, 'EST002', 'Ingeniería Industrial', 4, 2.1, 'critical', '2023-01-15', 85, 6, 15]
+            [2, 'EST002', 'Ingeniería Industrial', 4, 2.1, 'critical', '2023-01-15', 85, 6, 15]
         );
+        console.log('✅ Estudiante Carlos insertado');
 
-        // Ana - Estudiante destacada
+        // Ana - Estudiante destacada (ID: 3)
         await database.runAsync(
             'INSERT INTO students (user_id, student_code, career, semester, gpa, risk_level, enrollment_date, academic_credits, failed_subjects, absences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [anaResult.lastInsertRowId, 'EST003', 'Administración de Empresas', 8, 4.2, 'low', '2021-08-15', 180, 0, 2]
+            [3, 'EST003', 'Administración de Empresas', 8, 4.2, 'low', '2021-08-15', 180, 0, 2]
         );
+        console.log('✅ Estudiante Ana insertado');
 
         // === ALERTAS DEMO ===
 
@@ -289,10 +316,25 @@ const insertDemoData = async () => {
 
 // Obtener instancia de base de datos
 export const getDatabase = () => {
-    if (!database) {
-        throw new Error('Base de datos no inicializada. Llama a initializeDatabase() primero.');
+    if (!database || !dbInitialized) {
+        const error = new Error('Base de datos no inicializada. Asegúrate de llamar a initializeDatabase() primero.');
+        console.error('❌ ' + error.message);
+        throw error;
     }
     return database;
+};
+
+// Verificar si la base de datos está lista
+export const isDatabaseReady = () => {
+    return database !== null && dbInitialized;
+};
+
+// Esperar a que la base de datos esté lista
+export const ensureDatabaseReady = async (timeout = 10000) => {
+    if (isDatabaseReady()) {
+        return;
+    }
+    await waitForDatabaseReady(timeout);
 };
 
 // Cerrar base de datos
@@ -307,10 +349,19 @@ export const closeDatabase = async () => {
 // Función auxiliar para ejecutar consultas
 export const executeQuery = async (sql, params = []) => {
     try {
-        const db = getDatabase();
-        return await db.runAsync(sql, params);
+        // Asegurar que la base de datos esté lista
+        await ensureDatabaseReady();
+
+        console.log('📝 Ejecutando query:', sql);
+        if (params.length > 0) console.log('   Parámetros:', params);
+
+        // En expo-sqlite v16, los parámetros se pasan como array o como argumentos  
+        const result = await database.runAsync(sql, params);
+
+        console.log('✅ Query ejecutada exitosamente');
+        return result;
     } catch (error) {
-        console.error('Error ejecutando consulta:', error);
+        console.error('❌ Error ejecutando consulta:', error);
         throw error;
     }
 };
@@ -318,10 +369,19 @@ export const executeQuery = async (sql, params = []) => {
 // Función auxiliar para obtener resultados
 export const getQueryResults = async (sql, params = []) => {
     try {
-        const db = getDatabase();
-        return await db.getAllAsync(sql, params);
+        // Asegurar que la base de datos esté lista
+        await ensureDatabaseReady();
+
+        console.log('📝 Ejecutando getAllAsync:', sql);
+        if (params.length > 0) console.log('   Parámetros:', params);
+
+        // En expo-sqlite v16
+        const results = await database.getAllAsync(sql, params);
+
+        console.log('✅ Resultados obtenidos:', results ? results.length : 0);
+        return results || [];
     } catch (error) {
-        console.error('Error obteniendo resultados:', error);
+        console.error('❌ Error obteniendo resultados:', error);
         throw error;
     }
 };
@@ -329,10 +389,19 @@ export const getQueryResults = async (sql, params = []) => {
 // Función auxiliar para obtener un solo resultado
 export const getQueryResult = async (sql, params = []) => {
     try {
-        const db = getDatabase();
-        return await db.getFirstAsync(sql, params);
+        // Asegurar que la base de datos esté lista
+        await ensureDatabaseReady();
+
+        console.log('📝 Ejecutando getFirstAsync:', sql);
+        if (params.length > 0) console.log('   Parámetros:', params);
+
+        // En expo-sqlite v16
+        const result = await database.getFirstAsync(sql, params);
+
+        console.log('✅ Resultado obtenido:', result ? 'encontrado' : 'no encontrado');
+        return result || null;
     } catch (error) {
-        console.error('Error obteniendo resultado:', error);
+        console.error('❌ Error obteniendo resultado:', error);
         throw error;
     }
 };

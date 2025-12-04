@@ -9,6 +9,7 @@ import {
     StyleSheet,
     SafeAreaView,
     ActivityIndicator,
+    Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useAuth } from '../navigation/RootNavigator';
@@ -112,6 +113,32 @@ const ResourcesScreen = () => {
         const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun',
             'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
         return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    };
+
+    const handleDownload = (resource) => {
+        Alert.alert(
+            '📥 Descargar Recurso',
+            `¿Descargar "${resource.title}"?\n\nTamaño: ${resource.fileSize}`,
+            [
+                {
+                    text: 'Cancelar',
+                    onPress: () => console.log('Descarga cancelada'),
+                    style: 'cancel',
+                },
+                {
+                    text: 'Descargar',
+                    onPress: () => {
+                        Alert.alert(
+                            '✅ Descarga Iniciada',
+                            `El recurso "${resource.title}" se está descargando...`,
+                            [{ text: 'OK', onPress: () => console.log('Descarga confirmada') }]
+                        );
+                    },
+                    style: 'default',
+                },
+            ],
+            { cancelable: true }
+        );
     };
 
     const getFallbackData = () => [
@@ -234,7 +261,10 @@ const ResourcesScreen = () => {
 
                     <View style={styles.cardFooter}>
                         <Text style={styles.fileSize}>{item.fileSize}</Text>
-                        <TouchableOpacity style={styles.downloadButton}>
+                        <TouchableOpacity
+                            style={styles.downloadButton}
+                            onPress={() => handleDownload(item)}
+                        >
                             <Icon name="download-outline" size={16} color="#FFFFFF" />
                             <Text style={styles.downloadButtonText}>Descargar</Text>
                         </TouchableOpacity>
