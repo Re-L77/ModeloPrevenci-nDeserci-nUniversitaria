@@ -511,6 +511,7 @@ export default function PantallaPrincipalEstudiante() {
               </View>
             )}
 
+
           </View>
         </View>
         <View style={styles.bottomSpacing} />
@@ -525,43 +526,42 @@ export default function PantallaPrincipalEstudiante() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#F8F9FA',
   },
   scroll: {
     flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 50,
+    paddingHorizontal: 0,
+    paddingBottom: 90,
     width: '100%',
   },
   header: {
-    backgroundColor: '#fff',
-    paddingVertical: 20,
-    paddingTop: 40,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
-    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 20,
+    backgroundColor: '#F8F9FA',
   },
   headerContent: {
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    flex: 1,
   },
   greeting: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '700',
-    color: '#212529',
+    color: '#1F2937',
     marginBottom: 4,
-    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 13,
-    color: '#6c757d',
-    textAlign: 'center',
+    fontSize: 14,
+    color: '#9CA3AF',
   },
   alertsContainer: {
     width: '100%',
-    marginTop: 16,
+    marginTop: 0,
+    paddingHorizontal: 20,
   },
   alertCard: {
     backgroundColor: '#fff',
@@ -611,7 +611,7 @@ const styles = StyleSheet.create({
   statsGridContainer: {
     marginTop: 12,
     marginBottom: 16,
-    marginHorizontal: 0,
+    marginHorizontal: 20,
     gap: 10,
   },
   statsRow: {
@@ -673,6 +673,7 @@ const styles = StyleSheet.create({
   section: {
     width: '100%',
     marginTop: 20,
+    paddingHorizontal: 20,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -683,7 +684,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#212529',
+    color: '#1F2937',
     marginBottom: 12,
   },
   linkText: {
@@ -934,7 +935,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    marginHorizontal: 0,
     borderWidth: 1,
     borderColor: '#e9ecef',
     shadowColor: '#000',

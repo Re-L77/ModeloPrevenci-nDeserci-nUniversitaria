@@ -70,16 +70,17 @@ const HomeTabNavigator = () => {
                         <View style={{
                             alignItems: 'center',
                             justifyContent: 'center',
-                            width: 40,
-                            height: 40,
-                            borderRadius: 20,
-                            backgroundColor: focused ? 'rgba(99, 102, 241, 0.12)' : 'transparent',
-                            transform: [{ scale: focused ? 1.02 : 1 }],
+                            minWidth: 64,
+                            height: 36,
+                            borderRadius: 18,
+                            backgroundColor: focused ? '#007AFF' : 'transparent',
+                            paddingHorizontal: focused ? 16 : 8,
+                            transform: [{ scale: focused ? 1.05 : 1 }],
                         }}>
                             <Ionicons
                                 name={iconName}
                                 size={iconSize}
-                                color={color}
+                                color={focused ? '#FFFFFF' : color}
                                 style={{
                                     opacity: focused ? 1 : 0.8,
                                 }}
@@ -87,42 +88,39 @@ const HomeTabNavigator = () => {
                         </View>
                     );
                 },
-                tabBarActiveTintColor: '#6366F1',
+                tabBarActiveTintColor: '#007AFF',
                 tabBarInactiveTintColor: '#9CA3AF',
                 tabBarStyle: {
                     position: 'absolute',
-                    bottom: 20,
-                    left: 12,
-                    right: 12,
-                    height: 70,
+                    bottom: 15,
+                    left: 8,
+                    right: 8,
+                    height: 68,
                     backgroundColor: '#FFFFFF',
-                    borderRadius: 25,
+                    borderRadius: 35,
                     shadowColor: '#000000',
                     shadowOffset: {
                         width: 0,
-                        height: 8,
+                        height: 12,
                     },
-                    shadowOpacity: 0.15,
-                    shadowRadius: 20,
-                    elevation: 10,
+                    shadowOpacity: 0.2,
+                    shadowRadius: 25,
+                    elevation: 15,
                     borderTopWidth: 0,
-                    paddingBottom: 8,
-                    paddingTop: 8,
-                    paddingHorizontal: 12,
-                    // Subtle border for definition
-                    borderWidth: 0.5,
-                    borderColor: '#E2E8F0',
+                    paddingBottom: 10,
+                    paddingTop: 10,
+                    paddingHorizontal: 8,
                 },
                 tabBarLabelStyle: {
-                    fontSize: 10,
-                    fontWeight: '700',
-                    marginTop: 4,
-                    letterSpacing: 0.3,
+                    fontSize: 11,
+                    fontWeight: '600',
+                    marginTop: 2,
+                    textAlign: 'center',
                 },
                 tabBarItemStyle: {
-                    paddingVertical: 4,
+                    paddingVertical: 6,
                     borderRadius: 18,
-                    marginHorizontal: 2,
+                    marginHorizontal: 1,
                     flex: 1,
                     alignItems: 'center',
                     justifyContent: 'center',

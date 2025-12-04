@@ -225,7 +225,7 @@ export default function AlertsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F5F6FA",
+        backgroundColor: "#F8F9FA",
         paddingHorizontal: 20,
         paddingTop: 40,
     },
@@ -238,6 +238,7 @@ const styles = StyleSheet.create({
         shadowColor: "#000",
         shadowOpacity: 0.08,
         shadowRadius: 10,
+        elevation: 2,
     },
 
     header: {
@@ -249,6 +250,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 28,
         fontWeight: "bold",
+        color: "#1F2937",
     },
 
     badge: {
