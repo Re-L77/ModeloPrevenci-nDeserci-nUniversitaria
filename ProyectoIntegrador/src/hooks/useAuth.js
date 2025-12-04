@@ -112,27 +112,6 @@ export const useAuthLogic = () => {
         }
     };
 
-    // --- FUNCIÓN DE ELIMINAR BLINDADA ---
-    const deleteAccount = async () => {
-        try {
-            console.log('Hook useAuth: Solicitando eliminación de cuenta...');
-
-            // 1. Ejecutar borrado en BD y limpieza de memoria en controlador
-            const result = await userController.deleteAccount();
-
-            if (result.success) {
-                // 2. IMPORTANTE: Forzar el estado a nulo INMEDIATAMENTE
-                // Esto dispara el cambio de pantalla en App.js / RootNavigator
-                setIsAuthenticated(false);
-                setCurrentUser(null);
-                console.log('Hook useAuth: Cuenta eliminada y estado limpiado.');
-            }
-            return result;
-        } catch (error) {
-            console.error('Hook useAuth: Error crítico eliminando cuenta:', error);
-            return { success: false, message: 'Error al eliminar cuenta' };
-        }
-    };
 
     return {
         isAuthenticated,
@@ -143,6 +122,5 @@ export const useAuthLogic = () => {
         setUser,
         updateUserProfile,
         checkAuthStatus,
-        deleteAccount
     };
 };

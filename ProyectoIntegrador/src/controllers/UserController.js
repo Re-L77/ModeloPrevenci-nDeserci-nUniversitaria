@@ -274,28 +274,6 @@ class UserController {
     }
   }
 
-  // Eliminar cuenta actual
-  async deleteAccount() {
-    try {
-      if (!this.currentUser) {
-        throw new Error('No hay usuario autenticado');
-      }
-
-      console.log('UserController: Eliminando usuario', this.currentUser.id);
-
-      const deleteResult = await User.delete(this.currentUser.id);
-
-      if (!deleteResult) {
-      }
-
-      await this.logout();
-
-      return { success: true, message: 'Cuenta eliminada permanentemente' };
-    } catch (error) {
-      console.error('Delete account error:', error);
-      return { success: false, message: error.message };
-    }
-  }
 
   // Función de prueba para verificar la base de datos
   async testDatabaseConnection() {

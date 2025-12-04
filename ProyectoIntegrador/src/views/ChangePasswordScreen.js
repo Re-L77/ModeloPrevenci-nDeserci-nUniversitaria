@@ -7,11 +7,15 @@ import {
     TextInput,
     TouchableOpacity,
     Alert,
+    ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../navigation/RootNavigator';
+import userController from '../controllers/UserController';
 
 // Vista de Cambio de Contraseña
-const ChangePasswordScreen = () => {
+const ChangePasswordScreen = ({ navigation }) => {
+    const { logout } = useAuth();
     const [passwordData, setPasswordData] = useState({
         currentPassword: '',
         newPassword: '',
@@ -19,10 +23,12 @@ const ChangePasswordScreen = () => {
     });
 
     const [showPasswords, setShowPasswords] = useState({
-        current: false,
-        new: false,
-        confirm: false,
+        currentPassword: false,
+        newPassword: false,
+        confirmPassword: false,
     });
+
+    const [loading, setLoading] = useState(false);
 
     const handleInputChange = (field, value) => {
         setPasswordData({
@@ -55,15 +61,58 @@ const ChangePasswordScreen = () => {
         return true;
     };
 
-    const handleChangePassword = () => {
-        if (validatePasswords()) {
-            // TODO: Implementar cambio de contraseña en backend
-            Alert.alert('Éxito', 'Contraseña cambida correctamente');
-            setPasswordData({
-                currentPassword: '',
-                newPassword: '',
-                confirmPassword: '',
-            });
+    const handleChangePassword = async () => {
+        if (!validatePasswords()) {
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            console.log('ChangePasswordScreen: Cambiando contraseña...');
+
+            const result = await userController.changePassword(
+                passwordData.currentPassword,
+                passwordData.newPassword,
+                passwordData.confirmPassword
+            );
+
+            if (result.success) {
+                Alert.alert(
+                    'Contraseña Actualizada',
+                    'Tu contraseña ha sido cambiada exitosamente. Debes iniciar sesión nuevamente por seguridad.',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: async () => {
+                                // Cerrar sesión automáticamente
+                                await logout();
+                                if (navigation) {
+                                    navigation.reset({
+                                        index: 0,
+                                        routes: [{ name: 'Auth' }],
+                                    });
+                                }
+                            },
+                        },
+                    ],
+                    { cancelable: false }
+                );
+
+                // Limpiar formulario
+                setPasswordData({
+                    currentPassword: '',
+                    newPassword: '',
+                    confirmPassword: '',
+                });
+            } else {
+                Alert.alert('Error', result.message || 'No se pudo cambiar la contraseña');
+            }
+        } catch (error) {
+            console.error('ChangePasswordScreen: Error cambiando contraseña:', error);
+            Alert.alert('Error', 'Ocurrió un error inesperado. Inténtalo de nuevo.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -75,11 +124,30 @@ const ChangePasswordScreen = () => {
                 placeholder={placeholder}
                 secureTextEntry={!showPassword}
                 value={value}
-                onChangeText={(text) => handleInputChange(field, text)}
+                onChangeText={(text) => {
+                    console.log(`Cambiando ${field}:`, text);
+                    setPasswordData(prev => ({
+                        ...prev,
+                        [field]: text
+                    }));
+                }}
                 placeholderTextColor="#8E8E93"
+                editable={true}
+                autoComplete="off"
+                autoCorrect={false}
+                autoCapitalize="none"
+                textContentType="none"
+                passwordRules=""
+                importantForAutofill="no"
             />
             <TouchableOpacity
-                onPress={() => togglePasswordVisibility(field)}
+                onPress={() => {
+                    console.log(`Toggling visibility for ${field}`);
+                    setShowPasswords(prev => ({
+                        ...prev,
+                        [field]: !prev[field]
+                    }));
+                }}
                 style={styles.eyeIcon}
             >
                 <Ionicons
@@ -92,63 +160,75 @@ const ChangePasswordScreen = () => {
     );
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Cambiar Contraseña</Text>
-                <Text style={styles.sectionDescription}>
-                    Por tu seguridad, te pedimos que confirmes tu contraseña actual
-                </Text>
-
-                <View style={styles.formContainer}>
-                    <PasswordInput
-                        icon="lock-closed"
-                        placeholder="Contraseña Actual"
-                        value={passwordData.currentPassword}
-                        field="currentPassword"
-                        showPassword={showPasswords.current}
-                    />
-
-                    <View style={styles.divider} />
-
-                    <PasswordInput
-                        icon="lock-open"
-                        placeholder="Nueva Contraseña"
-                        value={passwordData.newPassword}
-                        field="newPassword"
-                        showPassword={showPasswords.new}
-                    />
-
-                    <Text style={styles.passwordHint}>
-                        Mínimo 6 caracteres, incluye números y letras
+        <View style={styles.container}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentInsetAdjustmentBehavior="automatic"
+            >
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Cambiar Contraseña</Text>
+                    <Text style={styles.sectionDescription}>
+                        Por tu seguridad, te pedimos que confirmes tu contraseña actual
                     </Text>
 
-                    <View style={styles.divider} />
+                    <View style={styles.formContainer}>
+                        <PasswordInput
+                            icon="lock-closed"
+                            placeholder="Contraseña Actual"
+                            value={passwordData.currentPassword}
+                            field="currentPassword"
+                            showPassword={showPasswords.currentPassword}
+                        />
 
-                    <PasswordInput
-                        icon="lock-open"
-                        placeholder="Confirmar Contraseña"
-                        value={passwordData.confirmPassword}
-                        field="confirmPassword"
-                        showPassword={showPasswords.confirm}
-                    />
+                        <View style={styles.divider} />
+
+                        <PasswordInput
+                            icon="lock-open"
+                            placeholder="Nueva Contraseña"
+                            value={passwordData.newPassword}
+                            field="newPassword"
+                            showPassword={showPasswords.newPassword}
+                        />
+
+                        <Text style={styles.passwordHint}>
+                            Mínimo 6 caracteres, incluye números y letras
+                        </Text>
+
+                        <View style={styles.divider} />
+
+                        <PasswordInput
+                            icon="lock-open"
+                            placeholder="Confirmar Contraseña"
+                            value={passwordData.confirmPassword}
+                            field="confirmPassword"
+                            showPassword={showPasswords.confirmPassword}
+                        />
+                    </View>
+
+                    <TouchableOpacity
+                        style={[styles.changeButton, loading && styles.buttonDisabled]}
+                        onPress={handleChangePassword}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <ActivityIndicator size="small" color="#FFFFFF" />
+                        ) : (
+                            <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+                        )}
+                        <Text style={styles.changeButtonText}>
+                            {loading ? 'Cambiando...' : 'Cambiar Contraseña'}
+                        </Text>
+                    </TouchableOpacity>
+
+                    <View style={styles.infoBox}>
+                        <Ionicons name="information-circle" size={20} color="#007AFF" />
+                        <Text style={styles.infoText}>
+                            Tu contraseña será cambiada inmediatamente. Tendrás que iniciar sesión nuevamente.
+                        </Text>
+                    </View>
                 </View>
-
-                <TouchableOpacity
-                    style={styles.changeButton}
-                    onPress={handleChangePassword}
-                >
-                    <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-                    <Text style={styles.changeButtonText}>Cambiar Contraseña</Text>
-                </TouchableOpacity>
-
-                <View style={styles.infoBox}>
-                    <Ionicons name="information-circle" size={20} color="#007AFF" />
-                    <Text style={styles.infoText}>
-                        Tu contraseña será cambiada inmediatamente. Tendrás que iniciar sesión nuevamente.
-                    </Text>
-                </View>
-            </View>
-        </ScrollView>
+            </ScrollView>
+        </View>
     );
 };
 
@@ -236,6 +316,10 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: '#0D47A1',
         fontWeight: '500',
+    },
+    buttonDisabled: {
+        backgroundColor: '#B0B0B0',
+        opacity: 0.7,
     },
 });
 

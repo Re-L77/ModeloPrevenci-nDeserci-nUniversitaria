@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../navigation/RootNavigator';
 
 const EditProfileScreen = () => {
-  const { currentUser, updateUserProfile, deleteAccount } = useAuth();
+  const { currentUser, updateUserProfile } = useAuth();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -93,32 +93,7 @@ const EditProfileScreen = () => {
     }
   };
 
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      '⚠️ Eliminar Cuenta',
-      'Esta acción es permanente y borrará todos tus datos de la base de datos local. ¿Estás seguro?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar Definitivamente',
-          style: 'destructive',
-          onPress: async () => {
-            setLoading(true);
-            try {
-              const result = await deleteAccount();
-              if (!result.success) {
-                Alert.alert('Error', result.message || 'No se pudo eliminar la cuenta');
-                setLoading(false);
-              }
-            } catch (error) {
-              setLoading(false);
-              Alert.alert('Error', 'Falló la eliminación de la cuenta');
-            }
-          },
-        },
-      ]
-    );
-  };
+
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -201,14 +176,7 @@ const EditProfileScreen = () => {
               <Text style={styles.editButtonText}>Editar Información</Text>
             </TouchableOpacity>
 
-            {/* --- 4. BOTÓN DE ELIMINAR CUENTA --- */}
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={handleDeleteAccount}
-            >
-              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-              <Text style={styles.deleteButtonText}>Eliminar mi cuenta</Text>
-            </TouchableOpacity>
+
           </View>
         ) : (
           <View style={styles.buttonGroup}>
