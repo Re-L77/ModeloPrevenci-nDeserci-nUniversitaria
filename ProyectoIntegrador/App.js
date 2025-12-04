@@ -41,20 +41,8 @@ export default function App() {
   };
 
   if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <View style={styles.logoContainer}>
-          <View style={styles.logoPlaceholder}>
-            <Text style={styles.logoText}>🎓</Text>
-          </View>
-        </View>
-        <Text style={styles.appTitle}>Sistema de Prevención</Text>
-        <Text style={styles.appSubtitle}>de Deserción Universitaria</Text>
-        <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
-        <Text style={styles.loadingText}>Inicializando aplicación...</Text>
-        <StatusBar style="auto" />
-      </View>
-    );
+    // No mostrar splash propio, dejar que RootNavigator maneje el SplashScreen
+    return null;
   }
 
   if (initError) {
@@ -76,54 +64,6 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F0F2F5',
-    paddingHorizontal: 20,
-  },
-  logoContainer: {
-    marginBottom: 30,
-  },
-  logoPlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  logoText: {
-    fontSize: 48,
-    color: '#FFFFFF',
-  },
-  appTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  appSubtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: 40,
-  },
-  loader: {
-    marginBottom: 20,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',

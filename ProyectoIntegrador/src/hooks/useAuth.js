@@ -42,16 +42,28 @@ export const useAuthLogic = () => {
                 setIsAuthenticated(false);
             }
         } finally {
-            if (loading) {
-                setLoading(false);
-            }
+            // No cambiamos loading aquí, se maneja en el useEffect principal
+            // para asegurar que el splash se muestre el tiempo suficiente
         }
     }, [isAuthenticated, currentUser, loading]);
 
     useEffect(() => {
         // Inicialización inicial solo una vez
         const initialize = async () => {
+            const startTime = Date.now();
             await checkAuthStatus();
+
+            // Asegurar que el splash se muestre por al menos 3 segundos
+            const elapsedTime = Date.now() - startTime;
+            const minSplashTime = 3000; // 3 segundos
+
+            if (elapsedTime < minSplashTime) {
+                setTimeout(() => {
+                    setLoading(false);
+                }, minSplashTime - elapsedTime);
+            } else {
+                setLoading(false);
+            }
         };
 
         initialize();

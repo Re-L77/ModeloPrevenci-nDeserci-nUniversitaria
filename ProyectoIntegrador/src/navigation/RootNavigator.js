@@ -4,6 +4,7 @@ import AuthNavigator from './AuthNavigator';
 import AppNavigator from './AppNavigator';
 import { useAuthLogic } from '../hooks/useAuth';
 import { AlertsBadgeProvider } from '../hooks/AlertsBadgeContext';
+import SplashScreen from '../views/SplashScreen';
 
 // Contexto de autenticación
 export const AuthContext = createContext({
@@ -38,8 +39,7 @@ const RootNavigator = () => {
     };
 
     if (authLogic.loading) {
-        // TODO: Mostrar pantalla de carga mejorada
-        return null;
+        return <SplashScreen />;
     }
 
     return (
