@@ -9,6 +9,7 @@ import StudentDetailsScreen from '../views/StudentDetailsScreen';
 import ProfileScreen from '../views/ProfileScreen';
 import EditProfileScreen from '../views/EditProfileScreen';
 import ChangePasswordScreen from '../views/ChangePasswordScreen';
+import useAlertsBadge from '../hooks/useAlertsBadge';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -44,6 +45,8 @@ const ProfileStackNavigator = () => {
 
 // Navegador de Tab (Inicio, Recursos, Alertas, Perfil)
 const HomeTabNavigator = () => {
+    const { alertsCount } = useAlertsBadge();
+
     return (
         <Tab.Navigator
             screenOptions={({ route }) => ({
@@ -95,7 +98,7 @@ const HomeTabNavigator = () => {
                 component={AlertsScreen}
                 options={{
                     title: 'Alertas',
-                    tabBarBadge: 2,
+                    tabBarBadge: alertsCount > 0 ? alertsCount : null,
                 }}
             />
             <Tab.Screen

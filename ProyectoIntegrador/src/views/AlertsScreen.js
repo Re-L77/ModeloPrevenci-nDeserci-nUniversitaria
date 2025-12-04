@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from "react-native";
 import { useAuth } from '../navigation/RootNavigator';
 import alertController from '../controllers/AlertController';
+import { useAlertsBadgeContext } from '../hooks/AlertsBadgeContext';
 
 export default function AlertsScreen() {
     const { currentUser } = useAuth();
+    const { decrementAlertsCount, updateAlertsCount } = useAlertsBadgeContext();
 
     const [notificaciones, setNotificaciones] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -31,6 +33,11 @@ export default function AlertsScreen() {
                         leida: alert.status !== 'active'
                     }));
                     setNotificaciones(alertasUI);
+
+                    // Actualizar el badge con el número de alertas activas
+                    const alertasActivas = alertasUI.filter(alert => !alert.leida);
+                    updateAlertsCount(alertasActivas.length);
+
                     console.log('AlertsScreen: Alertas cargadas:', alertasUI.length);
                 } else {
                     console.warn('AlertsScreen: Error cargando alertas:', result.message);
@@ -81,9 +88,10 @@ export default function AlertsScreen() {
         try {
             console.log('AlertsScreen: Eliminando alerta ID:', id);
             const result = await alertController.deleteAlert(id);
-            
+
             if (result.success) {
                 setNotificaciones(prev => prev.filter(noti => noti.id !== id));
+                decrementAlertsCount(); // Decrementar el badge
             } else {
                 console.warn('AlertsScreen: Error eliminando alerta:', result.message);
             }
@@ -96,11 +104,12 @@ export default function AlertsScreen() {
     const marcarComoLeida = async (id) => {
         try {
             const result = await alertController.resolveAlert(id);
-            
+
             if (result.success) {
-                setNotificaciones(prev => prev.map(noti => 
+                setNotificaciones(prev => prev.map(noti =>
                     noti.id === id ? { ...noti, leida: true } : noti
                 ));
+                decrementAlertsCount(); // Decrementar el badge cuando se resuelve
             }
         } catch (error) {
             console.error('AlertsScreen: Error marcando como leída:', error);
@@ -110,12 +119,14 @@ export default function AlertsScreen() {
     // Marcar todas como leídas
     const marcarTodasLeidas = async () => {
         try {
-            const promises = notificaciones
-                .filter(noti => !noti.leida)
-                .map(noti => alertController.resolveAlert(noti.id));
-            
+            const alertasActivas = notificaciones.filter(noti => !noti.leida);
+            const promises = alertasActivas.map(noti => alertController.resolveAlert(noti.id));
+
             await Promise.all(promises);
             setNotificaciones(prev => prev.map(noti => ({ ...noti, leida: true })));
+
+            // Actualizar el badge a 0 ya que todas las alertas están resueltas
+            updateAlertsCount(0);
         } catch (error) {
             console.error('AlertsScreen: Error marcando todas como leídas:', error);
         }

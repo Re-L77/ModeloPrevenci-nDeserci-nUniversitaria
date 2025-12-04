@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import AuthNavigator from './AuthNavigator';
 import AppNavigator from './AppNavigator';
 import { useAuthLogic } from '../hooks/useAuth';
+import { AlertsBadgeProvider } from '../hooks/AlertsBadgeContext';
 
 // Contexto de autenticación
 export const AuthContext = createContext({
@@ -43,13 +44,15 @@ const RootNavigator = () => {
 
     return (
         <AuthContext.Provider value={authValue}>
-            <NavigationContainer>
-                {authLogic.isAuthenticated ? (
-                    <AppNavigator />
-                ) : (
-                    <AuthNavigator />
-                )}
-            </NavigationContainer>
+            <AlertsBadgeProvider>
+                <NavigationContainer>
+                    {authLogic.isAuthenticated ? (
+                        <AppNavigator />
+                    ) : (
+                        <AuthNavigator />
+                    )}
+                </NavigationContainer>
+            </AlertsBadgeProvider>
         </AuthContext.Provider>
     );
 };
