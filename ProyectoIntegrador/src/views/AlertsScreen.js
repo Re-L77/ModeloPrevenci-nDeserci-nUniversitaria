@@ -166,7 +166,11 @@ export default function AlertsScreen() {
                     <Text style={styles.emptyText}>No hay notificaciones</Text>
                 </View>
             ) : (
-                <ScrollView style={styles.scroll} contentContainerStyle={{ paddingBottom: 30 }}>
+                <ScrollView
+                    style={styles.scroll}
+                    contentContainerStyle={{ paddingBottom: 120 }}
+                    showsVerticalScrollIndicator={false}
+                >
                     {notificaciones.map((item) => (
                         <View key={item.id} style={styles.card}>
                             <View style={styles.row}>

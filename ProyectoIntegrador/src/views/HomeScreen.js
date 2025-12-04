@@ -293,7 +293,11 @@ export default function PantallaPrincipalEstudiante() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
 
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.contentContainer}
+      >
         {/* Encabezado con saludo personalizado y programa del estudiante */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
@@ -479,36 +483,36 @@ export default function PantallaPrincipalEstudiante() {
                 </View>
               </View>
             </View>
+
+            {/* SECCIÓN: RECURSOS RECIENTES */}
+            {recursos.length > 0 && (
+              <View style={styles.section}>
+                <View style={[styles.sectionHeader]}>
+                  <Text style={styles.sectionTitle}>📚 Recursos Recientes</Text>
+
+                </View>
+
+                {recursos.map((resource) => (
+                  <TouchableOpacity key={resource.id} style={styles.resourceCard} activeOpacity={0.7}>
+                    <View style={styles.resourceIcon}>
+                      <Text style={styles.resourceIconText}>
+                        {resource.type === 'video' ? '🎥' : '📄'}
+                      </Text>
+                    </View>
+                    <View style={styles.resourceContent}>
+                      <Text style={styles.resourceTitle}>{resource.title}</Text>
+                      <Text style={styles.resourceCategory}>{resource.category || 'General'}</Text>
+                      <Text style={styles.resourceDate}>
+                        {new Date(resource.created_at).toLocaleDateString('es-ES')}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
           </View>
         </View>
-
-        {/* SECCIÓN: RECURSOS RECIENTES */}
-        {recursos.length > 0 && (
-          <View style={styles.section}>
-            <View style={[styles.sectionHeader, { marginHorizontal: 20 }]}>
-              <Text style={styles.sectionTitle}>📚 Recursos Recientes</Text>
-
-            </View>
-
-            {recursos.map((resource) => (
-              <TouchableOpacity key={resource.id} style={styles.resourceCard} activeOpacity={0.7}>
-                <View style={styles.resourceIcon}>
-                  <Text style={styles.resourceIconText}>
-                    {resource.type === 'video' ? '🎥' : '📄'}
-                  </Text>
-                </View>
-                <View style={styles.resourceContent}>
-                  <Text style={styles.resourceTitle}>{resource.title}</Text>
-                  <Text style={styles.resourceCategory}>{resource.category || 'General'}</Text>
-                  <Text style={styles.resourceDate}>
-                    {new Date(resource.created_at).toLocaleDateString('es-ES')}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-
         <View style={styles.bottomSpacing} />
       </ScrollView>
     </SafeAreaView>
@@ -528,6 +532,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 20,
+    paddingBottom: 50,
     width: '100%',
   },
   header: {
@@ -929,7 +934,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    marginHorizontal: 18,
+    marginHorizontal: 0,
     borderWidth: 1,
     borderColor: '#e9ecef',
     shadowColor: '#000',
